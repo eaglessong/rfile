@@ -46,5 +46,9 @@ export const fileService = {
 
   async createDirectory(directoryPath: string): Promise<void> {
     await api.post('/files/directory', { directoryPath });
+  },
+
+  async deleteDirectory(directoryPath: string): Promise<void> {
+    await api.delete(`/files/directory/${encodeURIComponent(directoryPath)}`);
   }
 };

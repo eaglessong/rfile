@@ -377,6 +377,46 @@ public class MockFileService : IFileService
         return false;
     }
 
+    public async Task<bool> DeleteDirectoryAsync(string directoryPath)
+    {
+        // Find the directory to delete
+        var directoryToDelete = _mockDirectories.FirstOrDefault(d => d.Path == directoryPath);
+        if (directoryToDelete == null)
+        {
+            return false; // Directory not found
+        }
+
+        // Remove all files in the directory from file contents
+        if (directoryToDelete.Files != null)
+        {
+            foreach (var file in directoryToDelete.Files)
+            {
+                _fileContents.Remove(file.Path);
+            }
+        }
+
+        // Remove all files from mock files that belong to this directory or subdirectories
+        var filesToRemove = _mockFiles.Where(f => f.Path.StartsWith(directoryPath + "/")).ToList();
+        foreach (var file in filesToRemove)
+        {
+            _mockFiles.Remove(file);
+            _fileContents.Remove(file.Path);
+        }
+
+        // Remove subdirectories recursively
+        var subdirectoriesToRemove = _mockDirectories.Where(d => d.Path.StartsWith(directoryPath + "/")).ToList();
+        foreach (var subdir in subdirectoriesToRemove)
+        {
+            _mockDirectories.Remove(subdir);
+        }
+
+        // Remove the directory itself
+        _mockDirectories.Remove(directoryToDelete);
+        
+        SaveDataToFile();
+        return true;
+    }
+
     public async Task<string> GetDownloadUrlAsync(string filePath)
     {
         // For mock service, return a placeholder URL

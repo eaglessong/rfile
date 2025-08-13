@@ -11,6 +11,7 @@ public interface IFileService
     Task<DirectoryItem> GetDirectoryStructureAsync(string directoryPath = "");
     Task<UploadResponse> UploadFileAsync(IFormFile file, string? directoryPath = null);
     Task<bool> DeleteFileAsync(string filePath);
+    Task<bool> DeleteDirectoryAsync(string directoryPath);
     Task<string> GetDownloadUrlAsync(string filePath);
     Task<bool> CreateDirectoryAsync(string directoryPath);
     Task<(byte[] content, string contentType)> GetFileContentWithTypeAsync(string filePath);
@@ -174,6 +175,44 @@ public class FileService : IFileService
             
             var response = await blobClient.DeleteIfExistsAsync();
             return response.Value;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteDirectoryAsync(string directoryPath)
+    {
+        try
+        {
+            var containerClient = _blobServiceClient.GetBlobContainerClient(ContainerName);
+            var prefix = $"{directoryPath.TrimEnd('/')}/";
+            
+            var blobsToDelete = new List<string>();
+            
+            // Find all blobs with the directory prefix
+            await foreach (var blobItem in containerClient.GetBlobsAsync(prefix: prefix))
+            {
+                blobsToDelete.Add(blobItem.Name);
+            }
+            
+            // Also check for the placeholder file that might represent the directory itself
+            var placeholderPath = $"{directoryPath.TrimEnd('/')}/.placeholder";
+            var placeholderBlob = containerClient.GetBlobClient(placeholderPath);
+            if (await placeholderBlob.ExistsAsync())
+            {
+                blobsToDelete.Add(placeholderPath);
+            }
+            
+            // Delete all found blobs
+            foreach (var blobName in blobsToDelete)
+            {
+                var blobClient = containerClient.GetBlobClient(blobName);
+                await blobClient.DeleteIfExistsAsync();
+            }
+            
+            return blobsToDelete.Count > 0;
         }
         catch
         {

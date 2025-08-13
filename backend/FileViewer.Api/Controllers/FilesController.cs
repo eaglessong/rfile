@@ -300,6 +300,37 @@ startxref
             return StatusCode(500, new { Message = "Error creating directory", Error = ex.Message });
         }
     }
+
+    [HttpDelete("directory/{*directoryPath}")]
+    public async Task<ActionResult> DeleteDirectory(string directoryPath)
+    {
+        Console.WriteLine($"Delete directory request: {directoryPath}");
+        
+        if (string.IsNullOrEmpty(directoryPath))
+        {
+            Console.WriteLine("Directory path is empty");
+            return BadRequest(new { Message = "Directory path is required" });
+        }
+
+        try
+        {
+            var result = await _fileService.DeleteDirectoryAsync(directoryPath);
+            Console.WriteLine($"Delete directory result: {result}");
+            if (result)
+            {
+                return Ok(new { Message = "Directory deleted successfully" });
+            }
+            else
+            {
+                return NotFound(new { Message = "Directory not found" });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Delete directory exception: {ex.Message}");
+            return StatusCode(500, new { Message = "Error deleting directory", Error = ex.Message });
+        }
+    }
 }
 
 public class CreateDirectoryRequest

@@ -130,6 +130,17 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const handleDeleteDirectory = async (directoryPath: string, directoryName: string) => {
+    if (window.confirm(`Are you sure you want to delete the folder "${directoryName}" and all its contents?`)) {
+      try {
+        await fileService.deleteDirectory(directoryPath);
+        loadDirectory(); // Refresh the directory
+      } catch (error: any) {
+        setError(`Failed to delete folder ${directoryName}: ${error.response?.data?.message || error.message}`);
+      }
+    }
+  };
+
   const navigateToDirectory = (path: string) => {
     setCurrentPath(path);
   };
@@ -264,11 +275,26 @@ const Dashboard: React.FC = () => {
             <div
               key={directory.path}
               className="file-item directory-item"
-              onClick={() => navigateToDirectory(directory.path)}
             >
               <FolderOpen size={24} />
               <span className="file-name">{directory.name}</span>
               <span className="file-info">Folder</span>
+              <div className="file-actions" onClick={(e) => e.stopPropagation()}>
+                <button
+                  onClick={() => navigateToDirectory(directory.path)}
+                  className="action-button small"
+                  title="Open Folder"
+                >
+                  <FolderOpen size={16} />
+                </button>
+                <button
+                  onClick={() => handleDeleteDirectory(directory.path, directory.name)}
+                  className="action-button small danger"
+                  title="Delete Folder"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
             </div>
           ))}
 
