@@ -44,7 +44,7 @@ builder.Services.AddApplicationInsightsTelemetry(options =>
 });
 
 // Add custom services
-builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddSingleton<IUserService, UserService>();
 
 // Add CORS
 builder.Services.AddCors(options =>
