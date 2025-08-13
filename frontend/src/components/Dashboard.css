@@ -301,8 +301,29 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Temporary debugging - make directory actions always visible */
+.directory-item .file-actions {
+  opacity: 1 !important;
+  background: rgba(255, 0, 0, 0.3) !important; /* Red background for debugging */
+}
+
 .file-item:hover .file-actions {
   opacity: 1;
+}
+
+.directory-item:hover .file-actions {
+  opacity: 1;
+}
+
+/* More specific rules for directory items */
+.file-item.directory-item:hover .file-actions {
+  opacity: 1 !important;
+}
+
+/* Ensure file-actions are always positioned correctly */
+.directory-item .file-actions {
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .directory-item:hover .file-actions {
