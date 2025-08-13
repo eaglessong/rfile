@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: azure-file-viewer
+metadata:
+  template: azure-file-viewer@0.0.1-beta
+services:
+  api:
+    project: ./backend
+    host: appservice
+    language: dotnet
+  web:
+    project: ./frontend
+    host: staticwebapp
+    language: js
+    dist: build
+hooks:
+  preprovision:
+    shell: pwsh
+    run: |
+      azd env set AZURE_PRINCIPAL_ID $(az ad signed-in-user show --query id --output tsv)
+      azd env set AZURE_LOCATION eastus
