@@ -5,9 +5,12 @@ metadata:
   template: azure-file-viewer@0.0.1-beta
 services:
   api:
-    project: ./backend
+    project: ./backend/FileViewer.Api
     host: appservice
     language: dotnet
+    config:
+      name: RemoteFile
+      resourceGroup: RemoteFile_group
   web:
     project: ./frontend
     host: staticwebapp
@@ -15,7 +18,7 @@ services:
     dist: build
 hooks:
   preprovision:
-    shell: pwsh
+    shell: sh
     run: |
       azd env set AZURE_PRINCIPAL_ID $(az ad signed-in-user show --query id --output tsv)
-      azd env set AZURE_LOCATION eastus
+      azd env set AZURE_LOCATION westus

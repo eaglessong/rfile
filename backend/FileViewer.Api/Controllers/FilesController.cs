@@ -137,16 +137,8 @@ public class FilesController : ControllerBase
                 return NotFound("File not found");
             }
 
-            // Find the file to get its name for proper headers
-            var files = await _fileService.GetFilesAsync("");
-            var file = files.FirstOrDefault(f => f.Path == filePath);
-            
-            if (file == null)
-            {
-                return NotFound("File not found");
-            }
-
-            string fileName = file.Name;
+            // Extract filename from the path
+            string fileName = Path.GetFileName(filePath);
             
             // Encode filename properly for Content-Disposition header
             var encodedFileName = Uri.EscapeDataString(fileName);
@@ -182,16 +174,8 @@ public class FilesController : ControllerBase
                 return NotFound("File not found");
             }
 
-            // Find the file to get its name for proper headers
-            var files = await _fileService.GetFilesAsync("");
-            var file = files.FirstOrDefault(f => f.Path == filePath);
-            
-            if (file == null)
-            {
-                return NotFound("File not found");
-            }
-
-            string fileName = file.Name;
+            // Extract filename from the path
+            string fileName = Path.GetFileName(filePath);
             var encodedFileName = Uri.EscapeDataString(fileName);
 
             // Set headers for download (attachment)
