@@ -77,11 +77,6 @@ const Login: React.FC = () => {
         <p className="auth-link">
           Don't have an account? <Link to="/register">Register here</Link>
         </p>
-        <div className="demo-credentials">
-          <h4>Demo Credentials:</h4>
-          <p>Username: admin</p>
-          <p>Password: admin123</p>
-        </div>
       </div>
     </div>
   );

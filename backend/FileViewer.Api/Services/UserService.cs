@@ -16,6 +16,12 @@ public interface IUserService
     Task<User?> GetUserByIdAsync(int userId);
     Task<User?> GetUserByUsernameAsync(string username);
     string GenerateJwtToken(User user);
+    
+    // Admin methods
+    Task<List<User>> GetAllUsersAsync();
+    Task<bool> CreateUserAsync(User user, string password);
+    Task<bool> UpdateUserAsync(User user, string? newPassword = null);
+    Task<bool> DeleteUserAsync(int userId);
 }
 
 public class UserService : IUserService
@@ -153,5 +159,72 @@ public class UserService : IUserService
     {
         var passwordHash = HashPassword(password);
         return passwordHash == hash;
+    }
+
+    // Admin methods implementation
+    public async Task<List<User>> GetAllUsersAsync()
+    {
+        return await _context.Users.OrderBy(u => u.Username).ToListAsync();
+    }
+
+    public async Task<bool> CreateUserAsync(User user, string password)
+    {
+        try
+        {
+            user.PasswordHash = HashPassword(password);
+            user.CreatedAt = DateTime.UtcNow;
+            
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> UpdateUserAsync(User user, string? newPassword = null)
+    {
+        try
+        {
+            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
+            if (existingUser == null)
+                return false;
+
+            existingUser.Username = user.Username;
+            existingUser.Email = user.Email;
+            existingUser.Role = user.Role;
+
+            if (!string.IsNullOrEmpty(newPassword))
+            {
+                existingUser.PasswordHash = HashPassword(newPassword);
+            }
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteUserAsync(int userId)
+    {
+        try
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+                return false;
+
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

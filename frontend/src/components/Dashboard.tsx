@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { useNavigate } from 'react-router-dom';
 // Test change for GitHub CI/CD pipeline verification
 // Updated to use list view format for better file management
 import { 
@@ -11,14 +12,16 @@ import {
   Plus, 
   LogOut,
   User,
-  ExternalLink
+  ExternalLink,
+  Settings
 } from 'lucide-react';
 import { fileService } from '../services/fileService';
 import { authService } from '../services/authService';
-import { DirectoryItem, FileItem, User as UserType } from '../types';
+import { DirectoryItem, FileItem, User as UserType, UserRole } from '../types';
 import './Dashboard.css';
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [currentPath, setCurrentPath] = useState('');
   const [directoryStructure, setDirectoryStructure] = useState<DirectoryItem | null>(null);
   const [loading, setLoading] = useState(false);
@@ -191,6 +194,16 @@ const Dashboard: React.FC = () => {
         <div className="user-info">
           <span>{user?.username}</span>
           <User size={20} />
+          {user?.role === UserRole.Owner && (
+            <button 
+              onClick={() => navigate('/admin')} 
+              className="admin-button"
+              title="User Management"
+            >
+              <Settings size={16} />
+              Admin
+            </button>
+          )}
           <button onClick={authService.logout} className="logout-button">
             <LogOut size={16} />
             Logout
