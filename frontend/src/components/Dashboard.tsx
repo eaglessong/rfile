@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 // Test change for GitHub CI/CD pipeline verification
+// Updated to use list view format for better file management
 import { 
   FolderOpen, 
   File, 
