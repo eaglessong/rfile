@@ -117,56 +117,13 @@ public class MockFileService : IFileService
 
     private static void InitializeDefaultData()
     {
-        _mockFiles.AddRange(new List<FileItem>
-        {
-            new FileItem
-            {
-                Name = "sample.txt",
-                Path = "sample.txt",
-                Size = 1024,
-                ContentType = "text/plain",
-                LastModified = DateTime.UtcNow.AddDays(-1),
-                CreatedDate = DateTime.UtcNow.AddDays(-3),
-                IsDirectory = false,
-                Url = "#"
-            },
-            new FileItem
-            {
-                Name = "image.jpg",
-                Path = "image.jpg",
-                Size = 2048576,
-                ContentType = "image/jpeg",
-                LastModified = DateTime.UtcNow.AddDays(-2),
-                CreatedDate = DateTime.UtcNow.AddDays(-4),
-                IsDirectory = false,
-                Url = "#"
-            }
-        });
-
-        _mockDirectories.AddRange(new List<DirectoryItem>
-        {
-            new DirectoryItem
-            {
-                Name = "documents",
-                Path = "documents",
-                CreatedDate = DateTime.UtcNow.AddDays(-10),
-                LastModified = DateTime.UtcNow.AddDays(-2),
-                Files = new List<FileItem>
-                {
-                    new FileItem
-                    {
-                        Name = "report.pdf",
-                        Path = "documents/report.pdf",
-                        Size = 1024000,
-                        ContentType = "application/pdf",
-                        LastModified = DateTime.UtcNow.AddDays(-3),
-                        CreatedDate = DateTime.UtcNow.AddDays(-5),
-                        IsDirectory = false,
-                        Url = "#"
-                    }
-                }
-            }
-        });
+        // Start with empty collections - no automatic test files
+        // Users will have a clean file system to begin with
+        _mockFiles.Clear();
+        _mockDirectories.Clear();
+        _fileContents.Clear();
+        
+        Console.WriteLine("Initialized empty file system - no sample files created");
     }
 
     public async Task<IEnumerable<FileItem>> GetFilesInDirectoryAsync(string path)
