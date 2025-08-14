@@ -222,22 +222,26 @@ const Dashboard: React.FC = () => {
       <header className="dashboard-header">
         <h1>Azure File Viewer</h1>
         <div className="user-info">
-          <span>{user?.username}</span>
-          <User size={20} />
-          {user?.role === UserRole.Owner && (
-            <button 
-              onClick={() => navigate('/admin')} 
-              className="admin-button"
-              title="User Management"
-            >
-              <Settings size={16} />
-              Admin
+          <div className="user-profile">
+            <User size={20} className="user-icon" />
+            <span>{user?.username}</span>
+          </div>
+          <div className="header-actions">
+            {user?.role === UserRole.Owner && (
+              <button 
+                onClick={() => navigate('/admin')} 
+                className="admin-button"
+                title="User Management"
+              >
+                <Settings size={16} />
+                Admin
+              </button>
+            )}
+            <button onClick={authService.logout} className="logout-button">
+              <LogOut size={16} />
+              Logout
             </button>
-          )}
-          <button onClick={authService.logout} className="logout-button">
-            <LogOut size={16} />
-            Logout
-          </button>
+          </div>
         </div>
       </header>
 
