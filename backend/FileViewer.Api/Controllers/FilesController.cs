@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FileViewer.Api.Controllers;
 
+// Test change for GitHub CI/CD pipeline verification
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]

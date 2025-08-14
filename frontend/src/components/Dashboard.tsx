@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
+// Test change for GitHub CI/CD pipeline verification
 import { 
   FolderOpen, 
   File, 
