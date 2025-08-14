@@ -80,10 +80,31 @@ resource web 'Microsoft.Web/sites@2022-03-01' = {
         supportCredentials: false
       }
       defaultDocuments: ['index.html']
+      appSettings: [
+        {
+          name: 'AZURE_STORAGE_ACCOUNT_NAME'
+          value: storage.name
+        }
+        {
+          name: 'AZURE_STORAGE_CONTAINER_NAME'
+          value: filesContainer.name
+        }
+        {
+          name: 'AZURE_CLIENT_ID'
+          value: managedIdentity.properties.clientId
+        }
+        {
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: applicationInsights.properties.ConnectionString
+        }
+      ]
     }
   }
   identity: {
-    type: 'SystemAssigned'
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${managedIdentity.id}': {}
+    }
   }
 }
 

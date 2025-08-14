@@ -18,19 +18,35 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Add Azure services
+var storageAccountName = builder.Configuration["AZURE_STORAGE_ACCOUNT_NAME"];
 var azureConnectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
     ?? builder.Configuration["AZURE_STORAGE_CONNECTION_STRING"];
 
-if (!string.IsNullOrEmpty(azureConnectionString) && azureConnectionString != "UseDevelopmentStorage=true")
+if (!string.IsNullOrEmpty(storageAccountName))
 {
+    // Use Azure Storage with Managed Identity (preferred for production)
+    var credential = new DefaultAzureCredential();
+    var blobServiceClient = new BlobServiceClient(new Uri($"https://{storageAccountName}.blob.core.windows.net"), credential);
+    builder.Services.AddSingleton(blobServiceClient);
+    builder.Services.AddScoped<IFileService, FileService>();
+    Console.WriteLine($"Using Azure Blob Storage: {storageAccountName}");
+}
+else if (!string.IsNullOrEmpty(azureConnectionString) && azureConnectionString != "UseDevelopmentStorage=true")
+{
+    // Fallback to connection string
     builder.Services.AddSingleton(new BlobServiceClient(azureConnectionString));
     builder.Services.AddScoped<IFileService, FileService>();
+    Console.WriteLine("Using Azure Blob Storage with connection string");
 }
 else
 {
     // Use database service for persistent storage across deployments
     builder.Services.AddScoped<IFileService, DatabaseFileService>();
+    Console.WriteLine("Using Database File Service");
 }
+
+// Add migration service (always available for admin operations)
+builder.Services.AddScoped<IMigrationService, MigrationService>();
 
 // Add Key Vault if available
 var keyVaultUri = builder.Configuration["KEY_VAULT_URI"];
