@@ -332,37 +332,74 @@ public class DatabaseFileService : IFileService
 
     public async Task<bool> CreateDirectoryAsync(string directoryPath)
     {
-        var existingDir = await _context.Directories
-            .FirstOrDefaultAsync(d => d.Path == directoryPath);
-
-        if (existingDir != null)
+        try
         {
-            return false; // Directory already exists
+            Console.WriteLine($"DatabaseFileService.CreateDirectoryAsync called with path: {directoryPath}");
+            
+            // Validate input
+            if (string.IsNullOrWhiteSpace(directoryPath))
+            {
+                Console.WriteLine("Directory path is null or empty");
+                return false;
+            }
+
+            // Check if directory already exists
+            var existingDir = await _context.Directories
+                .FirstOrDefaultAsync(d => d.Path == directoryPath);
+
+            if (existingDir != null)
+            {
+                Console.WriteLine($"Directory already exists: {directoryPath}");
+                return false; // Directory already exists
+            }
+
+            // Get parent directory
+            DirectoryItem? parentDirectory = null;
+            var pathParts = directoryPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            
+            if (pathParts.Length > 1)
+            {
+                var parentPath = string.Join("/", pathParts.Take(pathParts.Length - 1));
+                Console.WriteLine($"Looking for parent directory: {parentPath}");
+                
+                parentDirectory = await _context.Directories
+                    .FirstOrDefaultAsync(d => d.Path == parentPath);
+                
+                if (parentDirectory == null)
+                {
+                    Console.WriteLine($"Parent directory not found: {parentPath}");
+                    // For now, we'll allow creating directories without existing parents
+                    // This handles the case where we're creating a root-level directory
+                }
+            }
+
+            var directoryName = pathParts.LastOrDefault() ?? directoryPath;
+            Console.WriteLine($"Creating directory with name: {directoryName}, parentId: {parentDirectory?.Id}");
+
+            var newDirectory = new DirectoryItem
+            {
+                Name = directoryName,
+                Path = directoryPath,
+                CreatedDate = DateTime.UtcNow,
+                LastModified = DateTime.UtcNow,
+                ParentDirectoryId = parentDirectory?.Id,
+                Files = new List<FileItem>(),
+                Subdirectories = new List<DirectoryItem>()
+            };
+
+            _context.Directories.Add(newDirectory);
+            
+            Console.WriteLine("Saving directory to database...");
+            await _context.SaveChangesAsync();
+            
+            Console.WriteLine($"Directory created successfully: {directoryPath}");
+            return true;
         }
-
-        // Get parent directory
-        DirectoryItem? parentDirectory = null;
-        var pathParts = directoryPath.Split('/');
-        if (pathParts.Length > 1)
+        catch (Exception ex)
         {
-            var parentPath = string.Join("/", pathParts.Take(pathParts.Length - 1));
-            parentDirectory = await _context.Directories
-                .FirstOrDefaultAsync(d => d.Path == parentPath);
+            Console.WriteLine($"Error in CreateDirectoryAsync: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            return false;
         }
-
-        var newDirectory = new DirectoryItem
-        {
-            Name = pathParts.Last(),
-            Path = directoryPath,
-            CreatedDate = DateTime.UtcNow,
-            LastModified = DateTime.UtcNow,
-            ParentDirectoryId = parentDirectory?.Id,
-            Files = new List<FileItem>(),
-            Subdirectories = new List<DirectoryItem>()
-        };
-
-        _context.Directories.Add(newDirectory);
-        await _context.SaveChangesAsync();
-        return true;
     }
 }

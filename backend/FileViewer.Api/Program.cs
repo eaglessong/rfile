@@ -17,12 +17,12 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Add Azure services
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+var azureConnectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
     ?? builder.Configuration["AZURE_STORAGE_CONNECTION_STRING"];
 
-if (!string.IsNullOrEmpty(connectionString) && connectionString != "UseDevelopmentStorage=true")
+if (!string.IsNullOrEmpty(azureConnectionString) && azureConnectionString != "UseDevelopmentStorage=true")
 {
-    builder.Services.AddSingleton(new BlobServiceClient(connectionString));
+    builder.Services.AddSingleton(new BlobServiceClient(azureConnectionString));
     builder.Services.AddScoped<IFileService, FileService>();
 }
 else
@@ -46,9 +46,18 @@ builder.Services.AddApplicationInsightsTelemetry(options =>
 });
 
 // Add Database
+var dbConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrEmpty(dbConnectionString))
+{
+    // For Azure App Service, use a writable directory
+    var dataDirectory = Environment.GetEnvironmentVariable("HOME") ?? Environment.GetEnvironmentVariable("TEMP") ?? "/tmp";
+    var dbPath = Path.Combine(dataDirectory, "users.db");
+    dbConnectionString = $"Data Source={dbPath}";
+    Console.WriteLine($"Using database path: {dbPath}");
+}
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") 
-        ?? "Data Source=users.db"));
+    options.UseSqlite(dbConnectionString));
 
 // Add custom services
 builder.Services.AddScoped<IUserService, UserService>();
