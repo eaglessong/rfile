@@ -112,6 +112,17 @@ public class AdminController : ControllerBase
                 return NotFound(new { Message = "User not found" });
             }
 
+            // Check if username is being changed and if it already exists
+            if (!string.IsNullOrEmpty(request.Username) && 
+                request.Username != existingUser.Username)
+            {
+                var userWithSameUsername = await _userService.GetUserByUsernameAsync(request.Username);
+                if (userWithSameUsername != null)
+                {
+                    return BadRequest(new { Message = "Username already exists" });
+                }
+            }
+
             // Update user properties
             existingUser.Username = request.Username ?? existingUser.Username;
             existingUser.Email = request.Email ?? existingUser.Email;

@@ -98,9 +98,13 @@ const UserForm: React.FC<UserFormProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    
+    // Convert role value to number for enum
+    const processedValue = name === 'role' ? parseInt(value, 10) : value;
+    
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: processedValue
     }));
 
     // Clear error when user starts typing

@@ -190,7 +190,12 @@ public class UserService : IUserService
         {
             var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
             if (existingUser == null)
+            {
+                Console.WriteLine($"UpdateUserAsync: User with ID {user.Id} not found");
                 return false;
+            }
+
+            Console.WriteLine($"UpdateUserAsync: Updating user {existingUser.Username} (ID: {user.Id})");
 
             existingUser.Username = user.Username;
             existingUser.Email = user.Email;
@@ -199,13 +204,17 @@ public class UserService : IUserService
             if (!string.IsNullOrEmpty(newPassword))
             {
                 existingUser.PasswordHash = HashPassword(newPassword);
+                Console.WriteLine($"UpdateUserAsync: Updated password for user {user.Username}");
             }
 
             await _context.SaveChangesAsync();
+            Console.WriteLine($"UpdateUserAsync: Successfully updated user {user.Username}");
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"UpdateUserAsync: Error updating user {user.Username}: {ex.Message}");
+            Console.WriteLine($"UpdateUserAsync: Stack trace: {ex.StackTrace}");
             return false;
         }
     }

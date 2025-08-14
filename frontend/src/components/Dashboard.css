@@ -347,6 +347,13 @@
   text-overflow: ellipsis;
 }
 
+.file-count {
+  font-weight: 400;
+  color: #64748b;
+  margin-left: 4px;
+  font-size: 0.9em;
+}
+
 .file-type {
   text-align: center;
   font-size: 0.875rem;

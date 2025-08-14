@@ -319,7 +319,10 @@ const Dashboard: React.FC = () => {
               <div className="file-icon">
                 <FolderOpen size={20} />
               </div>
-              <div className="file-name">{directory.name}</div>
+              <div className="file-name">
+                {directory.name} 
+                <span className="file-count">({directory.files.length})</span>
+              </div>
               <div className="file-type">Folder</div>
               <div className="file-size">-</div>
               <div className="file-date">
