@@ -20,13 +20,13 @@ jobs:
         dotnet-version: '7.0.x'
     
     - name: Restore dependencies
-      run: dotnet restore backend/FileViewer.Api/FileViewer.Api.csproj
+      run: dotnet restore FileViewer.Web.csproj
     
     - name: Build
-      run: dotnet build backend/FileViewer.Api/FileViewer.Api.csproj --no-restore
+      run: dotnet build FileViewer.Web.csproj --no-restore
     
     - name: Test
-      run: dotnet test backend/FileViewer.Api/FileViewer.Api.csproj --no-build --verbosity normal
+      run: dotnet test FileViewer.Web.csproj --no-build --verbosity normal
 
   test-frontend:
     runs-on: ubuntu-latest
@@ -89,5 +89,48 @@ jobs:
       continue-on-error: true
     
     - name: Run .NET security scan
-      run: dotnet list backend/FileViewer.Api/FileViewer.Api.csproj package --vulnerable
+      run: dotnet list FileViewer.Web.csproj package --vulnerable
       continue-on-error: true
+
+  build-unified:
+    runs-on: ubuntu-latest
+    name: Build Unified Application
+    needs: [test-backend, test-frontend, lint-and-format]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '7.0.x'
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: Install frontend dependencies
+      run: npm ci
+      working-directory: frontend
+    
+    - name: Build frontend
+      run: npm run build
+      working-directory: frontend
+    
+    - name: Restore .NET dependencies
+      run: dotnet restore FileViewer.Web.csproj
+    
+    - name: Build unified application
+      run: dotnet build FileViewer.Web.csproj --configuration Release --no-restore
+    
+    - name: Publish application
+      run: dotnet publish FileViewer.Web.csproj --configuration Release --no-build --output ./publish
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: unified-app
+        path: ./publish/
