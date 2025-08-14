@@ -105,24 +105,36 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    context.Database.EnsureCreated();
     
-    // Seed default Owner account if no users exist
-    if (!context.Users.Any())
+    try
     {
-        var defaultOwner = new User
+        context.Database.EnsureCreated();
+        
+        // Seed default Owner account if no users exist
+        if (!context.Users.Any())
         {
-            Username = "owner",
-            Email = "owner@example.com",
-            PasswordHash = HashPassword("owner123"),
-            Role = UserRole.Owner,
-            CreatedAt = DateTime.UtcNow
-        };
-        
-        context.Users.Add(defaultOwner);
-        context.SaveChanges();
-        
-        Console.WriteLine("Created default owner account - Username: owner, Password: owner123");
+            var defaultOwner = new User
+            {
+                Username = "owner",
+                Email = "owner@example.com",
+                PasswordHash = HashPassword("owner123"),
+                Role = UserRole.Owner,
+                CreatedAt = DateTime.UtcNow
+            };
+            
+            context.Users.Add(defaultOwner);
+            await context.SaveChangesAsync();
+            
+            Console.WriteLine("✅ Created default owner account - Username: owner, Password: owner123");
+        }
+        else
+        {
+            Console.WriteLine($"ℹ️ Database already has {context.Users.Count()} users, skipping seeding");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error during database initialization: {ex.Message}");
     }
 }
 

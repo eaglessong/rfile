@@ -48,7 +48,7 @@ public class DebugController : ControllerBase
         }
     }
 
-    [HttpPost("create-owner")]
+    [HttpGet("create-owner")]
     public async Task<ActionResult> CreateOwner()
     {
         try

@@ -90,7 +90,7 @@ public class UserService : IUserService
             Username = request.Username,
             Email = request.Email,
             PasswordHash = HashPassword(request.Password),
-            Role = UserRole.Friend, // New users default to Friend role
+            Role = await _context.Users.AnyAsync() ? UserRole.Friend : UserRole.Owner, // First user becomes Owner
             CreatedAt = DateTime.UtcNow
         };
 
