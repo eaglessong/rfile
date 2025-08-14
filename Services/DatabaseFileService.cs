@@ -104,6 +104,14 @@ public class DatabaseFileService : IFileService
                 structure.Subdirectories = await _context.Directories
                     .Where(d => d.ParentDirectoryId == null)
                     .ToListAsync();
+
+                // Populate file counts for each subdirectory
+                foreach (var subdir in structure.Subdirectories)
+                {
+                    subdir.Files = await _context.Files
+                        .Where(f => f.DirectoryId == subdir.Id)
+                        .ToListAsync();
+                }
             }
             else
             {
@@ -136,6 +144,14 @@ public class DatabaseFileService : IFileService
                     structure.Subdirectories = await _context.Directories
                         .Where(d => d.ParentDirectoryId == structure.Id)
                         .ToListAsync();
+
+                    // Populate file counts for each subdirectory
+                    foreach (var subdir in structure.Subdirectories)
+                    {
+                        subdir.Files = await _context.Files
+                            .Where(f => f.DirectoryId == subdir.Id)
+                            .ToListAsync();
+                    }
                 }
             }
 
