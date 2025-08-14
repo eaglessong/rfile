@@ -15,9 +15,36 @@ public class DatabaseFileService : IFileService
 
     public async Task<List<FileItem>> GetFilesAsync(string directoryPath = "")
     {
-        return await _context.Files
-            .Where(f => f.Path.StartsWith(directoryPath) && !f.IsDirectory)
-            .ToListAsync();
+        try
+        {
+            if (string.IsNullOrEmpty(directoryPath))
+            {
+                // Get root files
+                return await _context.Files
+                    .Where(f => f.DirectoryId == null)
+                    .ToListAsync();
+            }
+            else
+            {
+                // Get files in specific directory
+                var directory = await _context.Directories
+                    .FirstOrDefaultAsync(d => d.Path == directoryPath);
+                
+                if (directory == null)
+                {
+                    return new List<FileItem>();
+                }
+
+                return await _context.Files
+                    .Where(f => f.DirectoryId == directory.Id)
+                    .ToListAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in GetFilesAsync: {ex.Message}");
+            return new List<FileItem>();
+        }
     }
 
     public async Task<List<DirectoryItem>> GetDirectoriesAsync(string directoryPath = "")
@@ -50,62 +77,89 @@ public class DatabaseFileService : IFileService
 
     public async Task<DirectoryItem> GetDirectoryStructureAsync(string directoryPath = "")
     {
-        DirectoryItem structure;
-
-        if (string.IsNullOrEmpty(directoryPath))
+        try
         {
-            // Root directory
-            structure = new DirectoryItem
+            DirectoryItem structure;
+
+            if (string.IsNullOrEmpty(directoryPath))
+            {
+                // Root directory
+                structure = new DirectoryItem
+                {
+                    Id = 0,
+                    Name = "root",
+                    Path = "",
+                    CreatedDate = DateTime.UtcNow,
+                    LastModified = DateTime.UtcNow,
+                    ParentDirectoryId = null,
+                    Files = new List<FileItem>(),
+                    Subdirectories = new List<DirectoryItem>()
+                };
+
+                // Get all root files and directories
+                structure.Files = await _context.Files
+                    .Where(f => f.DirectoryId == null)
+                    .ToListAsync();
+
+                structure.Subdirectories = await _context.Directories
+                    .Where(d => d.ParentDirectoryId == null)
+                    .ToListAsync();
+            }
+            else
+            {
+                // Get the current directory
+                structure = await _context.Directories
+                    .FirstOrDefaultAsync(d => d.Path == directoryPath);
+
+                if (structure == null)
+                {
+                    // Directory not found, return empty structure
+                    structure = new DirectoryItem 
+                    { 
+                        Id = 0,
+                        Name = "Not Found", 
+                        Path = directoryPath,
+                        CreatedDate = DateTime.UtcNow,
+                        LastModified = DateTime.UtcNow,
+                        ParentDirectoryId = null,
+                        Files = new List<FileItem>(),
+                        Subdirectories = new List<DirectoryItem>()
+                    };
+                }
+                else
+                {
+                    // Load files and subdirectories for this directory
+                    structure.Files = await _context.Files
+                        .Where(f => f.DirectoryId == structure.Id)
+                        .ToListAsync();
+
+                    structure.Subdirectories = await _context.Directories
+                        .Where(d => d.ParentDirectoryId == structure.Id)
+                        .ToListAsync();
+                }
+            }
+
+            return structure;
+        }
+        catch (Exception ex)
+        {
+            // Log the error and return an empty structure
+            Console.WriteLine($"Error in GetDirectoryStructureAsync: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            
+            // Return a safe fallback structure
+            return new DirectoryItem
             {
                 Id = 0,
                 Name = "root",
-                Path = "",
+                Path = directoryPath ?? "",
                 CreatedDate = DateTime.UtcNow,
                 LastModified = DateTime.UtcNow,
                 ParentDirectoryId = null,
                 Files = new List<FileItem>(),
                 Subdirectories = new List<DirectoryItem>()
             };
-
-            // Get all root files and directories
-            structure.Files = await _context.Files
-                .Where(f => f.DirectoryId == null && !f.IsDirectory)
-                .ToListAsync();
-
-            structure.Subdirectories = await _context.Directories
-                .Where(d => d.ParentDirectoryId == null)
-                .ToListAsync();
         }
-        else
-        {
-            // Get the current directory
-            structure = await _context.Directories
-                .FirstOrDefaultAsync(d => d.Path == directoryPath) 
-                ?? new DirectoryItem 
-                { 
-                    Name = "Not Found", 
-                    Path = directoryPath,
-                    CreatedDate = DateTime.UtcNow,
-                    LastModified = DateTime.UtcNow,
-                    Files = new List<FileItem>(),
-                    Subdirectories = new List<DirectoryItem>()
-                };
-
-            if (structure.Id > 0)
-            {
-                // Get files in this directory
-                structure.Files = await _context.Files
-                    .Where(f => f.DirectoryId == structure.Id)
-                    .ToListAsync();
-
-                // Get subdirectories
-                structure.Subdirectories = await _context.Directories
-                    .Where(d => d.ParentDirectoryId == structure.Id)
-                    .ToListAsync();
-            }
-        }
-
-        return structure;
     }
 
     public async Task<byte[]> GetFileContentAsync(string filePath)
