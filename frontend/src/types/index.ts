@@ -4,6 +4,7 @@ export interface FileItem {
   size: number;
   contentType: string;
   lastModified: string;
+  createdDate: string;
   isDirectory: boolean;
   url: string;
 }
@@ -11,6 +12,8 @@ export interface FileItem {
 export interface DirectoryItem {
   name: string;
   path: string;
+  createdDate: string;
+  lastModified: string;
   files: FileItem[];
   subdirectories: DirectoryItem[];
 }

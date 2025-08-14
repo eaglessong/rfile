@@ -266,9 +266,11 @@ const Dashboard: React.FC = () => {
 
         <div className="file-list">
           <div className="file-list-header">
+            <div></div> {/* Icon column */}
             <div className="header-name">Name</div>
             <div className="header-type">Type</div>
             <div className="header-size">Size</div>
+            <div className="header-created">Created</div>
             <div className="header-modified">Modified</div>
             <div className="header-actions">Actions</div>
           </div>
@@ -281,6 +283,7 @@ const Dashboard: React.FC = () => {
               <div className="file-name">..</div>
               <div className="file-type">Folder</div>
               <div className="file-size">-</div>
+              <div className="file-created">-</div>
               <div className="file-modified">-</div>
               <div className="file-actions">
                 <span className="file-info">Go up</span>
@@ -292,6 +295,13 @@ const Dashboard: React.FC = () => {
             <div
               key={directory.path}
               className="file-row directory-row"
+              onClick={(e) => {
+                // Only navigate if the click is not on the action buttons
+                if (!(e.target as HTMLElement).closest('.file-actions')) {
+                  navigateToDirectory(directory.path);
+                }
+              }}
+              title="Click to open folder"
             >
               <div className="file-icon">
                 <FolderOpen size={20} />
@@ -299,7 +309,8 @@ const Dashboard: React.FC = () => {
               <div className="file-name">{directory.name}</div>
               <div className="file-type">Folder</div>
               <div className="file-size">-</div>
-              <div className="file-modified">-</div>
+              <div className="file-created">{directory.createdDate ? new Date(directory.createdDate).toLocaleDateString() : '-'}</div>
+              <div className="file-modified">{directory.lastModified ? new Date(directory.lastModified).toLocaleDateString() : '-'}</div>
               <div className="file-actions" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => navigateToDirectory(directory.path)}
@@ -332,6 +343,7 @@ const Dashboard: React.FC = () => {
               <div className="file-name">{file.name}</div>
               <div className="file-type">File</div>
               <div className="file-size">{formatFileSize(file.size)}</div>
+              <div className="file-created">{new Date(file.createdDate).toLocaleString()}</div>
               <div className="file-modified">{new Date(file.lastModified).toLocaleString()}</div>
               <div className="file-actions" onClick={(e) => e.stopPropagation()}>
                 <button

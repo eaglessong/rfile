@@ -236,7 +236,7 @@
 
 .file-list-header {
   display: grid;
-  grid-template-columns: 40px 1fr 100px 120px 180px 150px;
+  grid-template-columns: 40px 1fr 100px 120px 160px 160px 150px;
   gap: 1rem;
   padding: 1rem;
   background: #f8fafc;
@@ -259,6 +259,10 @@
   text-align: right;
 }
 
+.header-created {
+  text-align: center;
+}
+
 .header-modified {
   text-align: center;
 }
@@ -269,7 +273,7 @@
 
 .file-row {
   display: grid;
-  grid-template-columns: 40px 1fr 100px 120px 180px 150px;
+  grid-template-columns: 40px 1fr 100px 120px 160px 160px 150px;
   gap: 1rem;
   padding: 1rem;
   border-bottom: 1px solid #f1f5f9;
@@ -296,10 +300,15 @@
 
 .directory-row {
   cursor: pointer;
+  user-select: none; /* Prevent text selection on double-click */
 }
 
 .directory-row:hover {
   background: #fef3c7;
+}
+
+.directory-row:active {
+  background: #fcd34d;
 }
 
 .file-icon {
@@ -337,6 +346,13 @@
   font-family: monospace;
 }
 
+.file-created {
+  text-align: center;
+  font-size: 0.875rem;
+  color: #64748b;
+  font-family: monospace;
+}
+
 .file-modified {
   text-align: center;
   font-size: 0.875rem;
@@ -349,7 +365,7 @@
   gap: 0.5rem;
   justify-content: center;
   align-items: center;
-  opacity: 0;
+  opacity: 1;
   transition: opacity 0.2s ease;
 }
 
@@ -413,11 +429,13 @@
   }
 
   .file-list-header .header-size,
+  .file-list-header .header-created,
   .file-list-header .header-modified {
     display: none;
   }
 
   .file-row .file-size,
+  .file-row .file-created,
   .file-row .file-modified {
     display: none;
   }

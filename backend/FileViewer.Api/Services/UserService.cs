@@ -1,4 +1,6 @@
+using FileViewer.Api.Data;
 using FileViewer.Api.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -19,31 +21,17 @@ public interface IUserService
 public class UserService : IUserService
 {
     private readonly IConfiguration _configuration;
-    private readonly List<User> _users; // In-memory storage for demo - use proper database in production
+    private readonly ApplicationDbContext _context;
 
-    public UserService(IConfiguration configuration)
+    public UserService(IConfiguration configuration, ApplicationDbContext context)
     {
         _configuration = configuration;
-        _users = new List<User>
-        {
-            // Default owner user for demo
-            new User
-            {
-                Id = 1,
-                Username = "admin",
-                Email = "admin@fileviewer.com",
-                PasswordHash = HashPassword("admin123"),
-                Role = UserRole.Owner,
-                CreatedAt = DateTime.UtcNow
-            }
-        };
+        _context = context;
     }
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
     {
-        await Task.Delay(1); // Simulate async operation
-
-        var user = _users.FirstOrDefault(u => u.Username == request.Username);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
         if (user == null || !VerifyPassword(request.Password, user.PasswordHash))
         {
             return new AuthResponse
@@ -73,9 +61,7 @@ public class UserService : IUserService
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
     {
-        await Task.Delay(1); // Simulate async operation
-
-        if (_users.Any(u => u.Username == request.Username))
+        if (await _context.Users.AnyAsync(u => u.Username == request.Username))
         {
             return new AuthResponse
             {
@@ -84,7 +70,7 @@ public class UserService : IUserService
             };
         }
 
-        if (_users.Any(u => u.Email == request.Email))
+        if (await _context.Users.AnyAsync(u => u.Email == request.Email))
         {
             return new AuthResponse
             {
@@ -95,7 +81,6 @@ public class UserService : IUserService
 
         var newUser = new User
         {
-            Id = _users.Count + 1,
             Username = request.Username,
             Email = request.Email,
             PasswordHash = HashPassword(request.Password),
@@ -103,7 +88,8 @@ public class UserService : IUserService
             CreatedAt = DateTime.UtcNow
         };
 
-        _users.Add(newUser);
+        _context.Users.Add(newUser);
+        await _context.SaveChangesAsync();
 
         var token = GenerateJwtToken(newUser);
         return new AuthResponse
@@ -125,14 +111,12 @@ public class UserService : IUserService
 
     public async Task<User?> GetUserByIdAsync(int userId)
     {
-        await Task.Delay(1); // Simulate async operation
-        return _users.FirstOrDefault(u => u.Id == userId);
+        return await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
     }
 
     public async Task<User?> GetUserByUsernameAsync(string username)
     {
-        await Task.Delay(1); // Simulate async operation
-        return _users.FirstOrDefault(u => u.Username == username);
+        return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
     }
 
     public string GenerateJwtToken(User user)

@@ -126,6 +126,7 @@ public class MockFileService : IFileService
                 Size = 1024,
                 ContentType = "text/plain",
                 LastModified = DateTime.UtcNow.AddDays(-1),
+                CreatedDate = DateTime.UtcNow.AddDays(-3),
                 IsDirectory = false,
                 Url = "#"
             },
@@ -136,6 +137,7 @@ public class MockFileService : IFileService
                 Size = 2048576,
                 ContentType = "image/jpeg",
                 LastModified = DateTime.UtcNow.AddDays(-2),
+                CreatedDate = DateTime.UtcNow.AddDays(-4),
                 IsDirectory = false,
                 Url = "#"
             }
@@ -147,6 +149,8 @@ public class MockFileService : IFileService
             {
                 Name = "documents",
                 Path = "documents",
+                CreatedDate = DateTime.UtcNow.AddDays(-10),
+                LastModified = DateTime.UtcNow.AddDays(-2),
                 Files = new List<FileItem>
                 {
                     new FileItem
@@ -156,6 +160,7 @@ public class MockFileService : IFileService
                         Size = 1024000,
                         ContentType = "application/pdf",
                         LastModified = DateTime.UtcNow.AddDays(-3),
+                        CreatedDate = DateTime.UtcNow.AddDays(-5),
                         IsDirectory = false,
                         Url = "#"
                     }
@@ -242,6 +247,7 @@ public class MockFileService : IFileService
             Size = file.Length,
             ContentType = file.ContentType,
             LastModified = DateTime.UtcNow,
+            CreatedDate = DateTime.UtcNow,
             IsDirectory = false,
             Url = "#" // In a real implementation, this would be the blob URL
         };
@@ -343,6 +349,8 @@ public class MockFileService : IFileService
         {
             Name = string.IsNullOrEmpty(directoryPath) ? "root" : directoryPath,
             Path = directoryPath,
+            CreatedDate = DateTime.UtcNow.AddDays(-15),
+            LastModified = DateTime.UtcNow.AddDays(-1),
             Files = files.ToList(),
             Subdirectories = directories.ToList()
         };
@@ -435,6 +443,8 @@ public class MockFileService : IFileService
         {
             Name = directoryPath.Split('/').Last(),
             Path = directoryPath,
+            CreatedDate = DateTime.UtcNow,
+            LastModified = DateTime.UtcNow,
             Files = new List<FileItem>(),
             Subdirectories = new List<DirectoryItem>()
         };

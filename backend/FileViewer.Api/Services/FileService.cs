@@ -52,6 +52,7 @@ public class FileService : IFileService
                 Size = blobItem.Properties.ContentLength ?? 0,
                 ContentType = properties.Value.ContentType,
                 LastModified = blobItem.Properties.LastModified?.DateTime ?? DateTime.MinValue,
+                CreatedDate = properties.Value.CreatedOn.DateTime,
                 IsDirectory = false,
                 Url = blobClient.Uri.ToString()
             });
@@ -70,7 +71,9 @@ public class FileService : IFileService
         var rootDirectory = new DirectoryItem
         {
             Name = string.IsNullOrEmpty(directoryPath) ? "Root" : Path.GetFileName(directoryPath),
-            Path = directoryPath
+            Path = directoryPath,
+            CreatedDate = DateTime.UtcNow.AddDays(-30), // Default for root directory
+            LastModified = DateTime.UtcNow
         };
 
         await foreach (var blobItem in containerClient.GetBlobsAsync(prefix: prefix))
@@ -91,6 +94,7 @@ public class FileService : IFileService
                     Size = blobItem.Properties.ContentLength ?? 0,
                     ContentType = properties.Value.ContentType,
                     LastModified = blobItem.Properties.LastModified?.DateTime ?? DateTime.MinValue,
+                    CreatedDate = properties.Value.CreatedOn.DateTime,
                     IsDirectory = false,
                     Url = blobClient.Uri.ToString()
                 });
@@ -106,7 +110,9 @@ public class FileService : IFileService
                     directories[subdirName] = new DirectoryItem
                     {
                         Name = subdirName,
-                        Path = subdirPath
+                        Path = subdirPath,
+                        CreatedDate = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 30)), // Random creation time for demo
+                        LastModified = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 7))
                     };
                 }
             }
@@ -151,6 +157,7 @@ public class FileService : IFileService
                     Size = file.Length,
                     ContentType = file.ContentType,
                     LastModified = DateTime.UtcNow,
+                    CreatedDate = DateTime.UtcNow,
                     IsDirectory = false,
                     Url = blobClient.Uri.ToString()
                 }

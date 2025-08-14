@@ -7,6 +7,7 @@ public class FileItem
     public long Size { get; set; }
     public string ContentType { get; set; } = string.Empty;
     public DateTime LastModified { get; set; }
+    public DateTime CreatedDate { get; set; }
     public bool IsDirectory { get; set; }
     public string Url { get; set; } = string.Empty;
 }
@@ -15,6 +16,8 @@ public class DirectoryItem
 {
     public string Name { get; set; } = string.Empty;
     public string Path { get; set; } = string.Empty;
+    public DateTime CreatedDate { get; set; }
+    public DateTime LastModified { get; set; }
     public List<FileItem> Files { get; set; } = new();
     public List<DirectoryItem> Subdirectories { get; set; } = new();
 }
