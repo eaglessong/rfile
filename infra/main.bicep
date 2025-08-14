@@ -88,7 +88,7 @@ resource api 'Microsoft.Web/sites@2022-03-01' = {
 
 // Static Web App for frontend
 resource web 'Microsoft.Web/staticSites@2021-03-01' = {
-  name: '${abbrs.webStaticSites}${resourceToken}'
+  name: 'RemoteFile'
   location: 'eastus2'  // Static Web Apps require specific regions
   tags: union(tags, { 'azd-service-name': 'web' })
   sku: {
