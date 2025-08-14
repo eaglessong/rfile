@@ -86,8 +86,13 @@ public class ShareController : ControllerBase
 
             // Get file info for proper content type
             var fileName = Path.GetFileName(filePath);
+            var encodedFileName = Uri.EscapeDataString(fileName);
 
-            return File(content, contentType, fileName);
+            // Set headers for inline viewing (not download)
+            Response.Headers.Add("Content-Disposition", $"inline; filename*=UTF-8''{encodedFileName}");
+            
+            // Return the file content with proper content type for viewing
+            return File(content, contentType);
         }
         catch (Exception ex)
         {
