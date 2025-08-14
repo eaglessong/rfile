@@ -50,8 +50,41 @@ resource filesContainer 'Microsoft.Storage/storageAccounts/blobServices/containe
   }
 }
 
-// Note: Using existing App Service 'RemoteFile' in resource group 'RemoteFile_group'
-// The App Service will be configured separately through azd deployment
+// App Service Plan for the API
+resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
+  name: '${abbrs.webServerFarms}${resourceToken}'
+  location: location
+  tags: tags
+  sku: {
+    name: 'B1'
+    tier: 'Basic'
+  }
+  properties: {
+    reserved: false
+  }
+}
+
+// App Service for API
+resource api 'Microsoft.Web/sites@2022-03-01' = {
+  name: '${abbrs.webSitesAppService}${resourceToken}'
+  location: location
+  tags: union(tags, { 'azd-service-name': 'api' })
+  properties: {
+    serverFarmId: appServicePlan.id
+    httpsOnly: true
+    siteConfig: {
+      netFrameworkVersion: 'v8.0'
+      alwaysOn: true
+      cors: {
+        allowedOrigins: ['*']
+        supportCredentials: false
+      }
+    }
+  }
+  identity: {
+    type: 'SystemAssigned'
+  }
+}
 
 // Static Web App for frontend
 resource web 'Microsoft.Web/staticSites@2021-03-01' = {

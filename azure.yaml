@@ -8,9 +8,6 @@ services:
     project: ./backend/FileViewer.Api
     host: appservice
     language: dotnet
-    config:
-      name: RemoteFile
-      resourceGroup: RemoteFile_group
   web:
     project: ./frontend
     host: staticwebapp
