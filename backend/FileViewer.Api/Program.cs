@@ -27,8 +27,8 @@ if (!string.IsNullOrEmpty(connectionString) && connectionString != "UseDevelopme
 }
 else
 {
-    // Use mock service for development when Azure Storage is not available
-    builder.Services.AddSingleton<IFileService, MockFileService>();
+    // Use database service for persistent storage across deployments
+    builder.Services.AddScoped<IFileService, DatabaseFileService>();
 }
 
 // Add Key Vault if available

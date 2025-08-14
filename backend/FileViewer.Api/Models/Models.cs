@@ -2,6 +2,7 @@ namespace FileViewer.Api.Models;
 
 public class FileItem
 {
+    public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Path { get; set; } = string.Empty;
     public long Size { get; set; }
@@ -10,14 +11,18 @@ public class FileItem
     public DateTime CreatedDate { get; set; }
     public bool IsDirectory { get; set; }
     public string Url { get; set; } = string.Empty;
+    public int? DirectoryId { get; set; } // Foreign key for parent directory
+    public string FileContentBase64 { get; set; } = string.Empty; // Store file content as Base64
 }
 
 public class DirectoryItem
 {
+    public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Path { get; set; } = string.Empty;
     public DateTime CreatedDate { get; set; }
     public DateTime LastModified { get; set; }
+    public int? ParentDirectoryId { get; set; } // Foreign key for parent directory
     public List<FileItem> Files { get; set; } = new();
     public List<DirectoryItem> Subdirectories { get; set; } = new();
 }

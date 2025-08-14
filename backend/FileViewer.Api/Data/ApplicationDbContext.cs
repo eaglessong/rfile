@@ -10,6 +10,8 @@ public class ApplicationDbContext : DbContext
     }
 
     public DbSet<User> Users { get; set; } = null!;
+    public DbSet<FileItem> Files { get; set; } = null!;
+    public DbSet<DirectoryItem> Directories { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -28,6 +30,37 @@ public class ApplicationDbContext : DbContext
             // Create unique indexes
             entity.HasIndex(e => e.Username).IsUnique();
             entity.HasIndex(e => e.Email).IsUnique();
+        });
+
+        // Configure FileItem entity
+        modelBuilder.Entity<FileItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.Path).IsRequired().HasMaxLength(1000);
+            entity.Property(e => e.ContentType).HasMaxLength(100);
+            entity.Property(e => e.Url).HasMaxLength(1000);
+            entity.Property(e => e.FileContentBase64).HasColumnType("TEXT");
+            
+            // Create index on Path for faster lookups
+            entity.HasIndex(e => e.Path);
+        });
+
+        // Configure DirectoryItem entity
+        modelBuilder.Entity<DirectoryItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.Path).IsRequired().HasMaxLength(1000);
+            
+            // Self-referencing relationship for parent directory
+            entity.HasOne<DirectoryItem>()
+                  .WithMany()
+                  .HasForeignKey(e => e.ParentDirectoryId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            
+            // Create index on Path for faster lookups
+            entity.HasIndex(e => e.Path);
         });
 
         // Seed default admin user
