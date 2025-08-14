@@ -134,6 +134,7 @@ const UserForm: React.FC<UserFormProps> = ({
               value={formData.username}
               onChange={handleInputChange}
               placeholder="Enter username"
+              autoComplete="username"
             />
             {errors.username && (
               <span style={{ color: '#dc3545', fontSize: '12px', marginTop: '4px' }}>
@@ -151,6 +152,7 @@ const UserForm: React.FC<UserFormProps> = ({
               value={formData.email}
               onChange={handleInputChange}
               placeholder="Enter email address"
+              autoComplete="email"
             />
             {errors.email && (
               <span style={{ color: '#dc3545', fontSize: '12px', marginTop: '4px' }}>
@@ -170,6 +172,7 @@ const UserForm: React.FC<UserFormProps> = ({
               value={formData.password}
               onChange={handleInputChange}
               placeholder={isEditing ? "Leave blank to keep current password" : "Enter password"}
+              autoComplete="new-password"
             />
             {errors.password && (
               <span style={{ color: '#dc3545', fontSize: '12px', marginTop: '4px' }}>
@@ -189,6 +192,7 @@ const UserForm: React.FC<UserFormProps> = ({
               value={formData.confirmPassword}
               onChange={handleInputChange}
               placeholder="Confirm password"
+              autoComplete="new-password"
             />
             {errors.confirmPassword && (
               <span style={{ color: '#dc3545', fontSize: '12px', marginTop: '4px' }}>

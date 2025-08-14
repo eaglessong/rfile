@@ -57,6 +57,7 @@ const Register: React.FC = () => {
               onChange={handleChange}
               required
               disabled={loading}
+              autoComplete="username"
             />
           </div>
           <div className="form-group">
@@ -69,6 +70,7 @@ const Register: React.FC = () => {
               onChange={handleChange}
               required
               disabled={loading}
+              autoComplete="email"
             />
           </div>
           <div className="form-group">
@@ -81,6 +83,7 @@ const Register: React.FC = () => {
               onChange={handleChange}
               required
               disabled={loading}
+              autoComplete="new-password"
             />
           </div>
           <button type="submit" disabled={loading} className="submit-button">

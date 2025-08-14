@@ -56,6 +56,7 @@ const Login: React.FC = () => {
               onChange={handleChange}
               required
               disabled={loading}
+              autoComplete="username"
             />
           </div>
           <div className="form-group">
@@ -68,6 +69,7 @@ const Login: React.FC = () => {
               onChange={handleChange}
               required
               disabled={loading}
+              autoComplete="current-password"
             />
           </div>
           <button type="submit" disabled={loading} className="submit-button">
