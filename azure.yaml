@@ -19,3 +19,8 @@ hooks:
     run: |
       azd env set AZURE_PRINCIPAL_ID $(az ad signed-in-user show --query id --output tsv)
       azd env set AZURE_LOCATION westus
+      azd env set AZURE_RESOURCE_GROUP RemoteFile
+  postprovision:
+    shell: sh
+    run: |
+      azd env set AZURE_RESOURCE_GROUP RemoteFile
