@@ -113,8 +113,8 @@ public class ShareController : ControllerBase
 
     private string GetBaseUrl()
     {
-        var request = HttpContext.Request;
-        return $"{request.Scheme}://{request.Host}";
+        // Use the custom domain for share links
+        return "https://rfile.jaysong.org";
     }
 }
 
