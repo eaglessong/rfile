@@ -2,6 +2,7 @@ using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Blobs;
 using FileViewer.Api.Data;
+using FileViewer.Api.Models;
 using FileViewer.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -105,6 +106,32 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     context.Database.EnsureCreated();
+    
+    // Seed default Owner account if no users exist
+    if (!context.Users.Any())
+    {
+        var defaultOwner = new User
+        {
+            Username = "owner",
+            Email = "owner@example.com",
+            PasswordHash = HashPassword("owner123"),
+            Role = UserRole.Owner,
+            CreatedAt = DateTime.UtcNow
+        };
+        
+        context.Users.Add(defaultOwner);
+        context.SaveChanges();
+        
+        Console.WriteLine("Created default owner account - Username: owner, Password: owner123");
+    }
+}
+
+// Password hashing helper method (matching UserService implementation)
+static string HashPassword(string password)
+{
+    using var sha256 = System.Security.Cryptography.SHA256.Create();
+    var hashedBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password + "salt"));
+    return Convert.ToBase64String(hashedBytes);
 }
 
 // Configure the HTTP request pipeline.
