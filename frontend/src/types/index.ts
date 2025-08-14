@@ -55,3 +55,14 @@ export interface AuthResponse {
   token?: string;
   user?: User;
 }
+
+export interface ShareLinkRequest {
+  filePath: string;
+  directoryPath?: string;
+}
+
+export interface ShareLinkResponse {
+  success: boolean;
+  shareUrl: string;
+  message: string;
+}

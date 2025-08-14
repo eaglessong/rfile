@@ -97,6 +97,29 @@
   margin-left: 1rem;
 }
 
+.success-banner {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.success-banner button {
+  background: none;
+  border: none;
+  color: #16a34a;
+  cursor: pointer;
+  font-size: 1.25rem;
+  font-weight: bold;
+  padding: 0;
+  margin-left: 1rem;
+}
+
 .toolbar {
   display: flex;
   justify-content: space-between;

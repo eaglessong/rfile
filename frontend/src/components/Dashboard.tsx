@@ -13,11 +13,13 @@ import {
   LogOut,
   User,
   ExternalLink,
-  Settings
+  Settings,
+  Share2
 } from 'lucide-react';
 import { fileService } from '../services/fileService';
 import { authService } from '../services/authService';
-import { DirectoryItem, FileItem, User as UserType, UserRole } from '../types';
+import { api } from '../services/api';
+import { DirectoryItem, FileItem, User as UserType, UserRole, ShareLinkRequest, ShareLinkResponse } from '../types';
 import './Dashboard.css';
 
 const Dashboard: React.FC = () => {
@@ -26,6 +28,7 @@ const Dashboard: React.FC = () => {
   const [directoryStructure, setDirectoryStructure] = useState<DirectoryItem | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [user, setUser] = useState<UserType | null>(null);
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
@@ -107,6 +110,33 @@ const Dashboard: React.FC = () => {
     } catch (error: any) {
       console.error('Error downloading file:', error);
       setError(`Failed to download ${file.name}: ${error.response?.data?.message || error.message}`);
+    }
+  };
+
+  const handleShareLink = async (file: FileItem) => {
+    try {
+      const shareRequest: ShareLinkRequest = {
+        filePath: file.path,
+        directoryPath: currentPath
+      };
+
+      const response = await api.post<ShareLinkResponse>('/share/generate-link', shareRequest);
+      
+      if (response.data.success) {
+        // Copy the share URL to clipboard
+        await navigator.clipboard.writeText(response.data.shareUrl);
+        
+        // Show success message
+        setSuccessMessage(`Share link copied to clipboard!`);
+        
+        // Clear the success message after 4 seconds
+        setTimeout(() => setSuccessMessage(''), 4000);
+      } else {
+        setError(response.data.message);
+      }
+    } catch (error: any) {
+      console.error('Error generating share link:', error);
+      setError(`Failed to generate share link for ${file.name}: ${error.response?.data?.message || error.message}`);
     }
   };
 
@@ -216,6 +246,13 @@ const Dashboard: React.FC = () => {
           <div className="error-banner">
             {error}
             <button onClick={() => setError('')}>×</button>
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="success-banner">
+            {successMessage}
+            <button onClick={() => setSuccessMessage('')}>×</button>
           </div>
         )}
 
@@ -387,6 +424,13 @@ const Dashboard: React.FC = () => {
                   title="Download"
                 >
                   <Download size={16} />
+                </button>
+                <button
+                  onClick={() => handleShareLink(file)}
+                  className="action-button small"
+                  title="Copy share link to clipboard"
+                >
+                  <Share2 size={16} />
                 </button>
                 <button
                   onClick={() => handleDelete(file)}
