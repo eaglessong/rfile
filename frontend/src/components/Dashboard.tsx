@@ -263,23 +263,42 @@ const Dashboard: React.FC = () => {
           </div>
         )}
 
-        <div className="file-grid">
+        <div className="file-list">
+          <div className="file-list-header">
+            <div className="header-name">Name</div>
+            <div className="header-type">Type</div>
+            <div className="header-size">Size</div>
+            <div className="header-modified">Modified</div>
+            <div className="header-actions">Actions</div>
+          </div>
+
           {currentPath && (
-            <div className="file-item directory-item" onClick={navigateUp}>
-              <FolderOpen size={24} />
-              <span className="file-name">..</span>
-              <span className="file-info">Go up</span>
+            <div className="file-row directory-row" onClick={navigateUp}>
+              <div className="file-icon">
+                <FolderOpen size={20} />
+              </div>
+              <div className="file-name">..</div>
+              <div className="file-type">Folder</div>
+              <div className="file-size">-</div>
+              <div className="file-modified">-</div>
+              <div className="file-actions">
+                <span className="file-info">Go up</span>
+              </div>
             </div>
           )}
 
           {directoryStructure?.subdirectories.map((directory) => (
             <div
               key={directory.path}
-              className="file-item directory-item"
+              className="file-row directory-row"
             >
-              <FolderOpen size={24} />
-              <span className="file-name">{directory.name}</span>
-              <span className="file-info">Folder</span>
+              <div className="file-icon">
+                <FolderOpen size={20} />
+              </div>
+              <div className="file-name">{directory.name}</div>
+              <div className="file-type">Folder</div>
+              <div className="file-size">-</div>
+              <div className="file-modified">-</div>
               <div className="file-actions" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => navigateToDirectory(directory.path)}
@@ -302,15 +321,17 @@ const Dashboard: React.FC = () => {
           {directoryStructure?.files.map((file) => (
             <div 
               key={file.path} 
-              className="file-item clickable-file"
+              className="file-row file-row-clickable"
               onClick={() => handleOpenFile(file)}
               title={`Click to open ${file.name}`}
             >
-              <File size={24} />
-              <span className="file-name">{file.name}</span>
-              <span className="file-info">
-                {formatFileSize(file.size)} • {new Date(file.lastModified).toLocaleDateString()}
-              </span>
+              <div className="file-icon">
+                <File size={20} />
+              </div>
+              <div className="file-name">{file.name}</div>
+              <div className="file-type">File</div>
+              <div className="file-size">{formatFileSize(file.size)}</div>
+              <div className="file-modified">{new Date(file.lastModified).toLocaleString()}</div>
               <div className="file-actions" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => handleOpenFile(file)}

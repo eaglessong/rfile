@@ -222,128 +222,145 @@
   background: #f3f4f6;
 }
 
-.file-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.file-item {
+.file-list {
   background: white;
-  padding: 1.5rem;
   border-radius: 0.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  position: relative;
-  transition: all 0.2s;
+  overflow: hidden;
 }
 
-.file-item:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-.clickable-file {
-  cursor: pointer;
-}
-
-.clickable-file:hover {
+.file-list-header {
+  display: grid;
+  grid-template-columns: 40px 1fr 100px 120px 180px 150px;
+  gap: 1rem;
+  padding: 1rem;
   background: #f8fafc;
-  border: 2px solid #3b82f6;
+  border-bottom: 1px solid #e2e8f0;
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+  align-items: center;
 }
 
-.directory-item {
-  cursor: pointer;
+.header-name {
+  grid-column: 2;
+}
+
+.header-type {
+  text-align: center;
+}
+
+.header-size {
+  text-align: right;
+}
+
+.header-modified {
+  text-align: center;
+}
+
+.header-actions {
+  text-align: center;
+}
+
+.file-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 100px 120px 180px 150px;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  align-items: center;
+  transition: background-color 0.2s;
   position: relative;
 }
 
-.directory-item:hover {
+.file-row:hover {
+  background: #f8fafc;
+}
+
+.file-row:last-child {
+  border-bottom: none;
+}
+
+.file-row-clickable {
+  cursor: pointer;
+}
+
+.file-row-clickable:hover {
   background: #eff6ff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.file-item svg {
+.directory-row {
+  cursor: pointer;
+}
+
+.directory-row:hover {
+  background: #fef3c7;
+}
+
+.file-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.file-icon svg {
   color: #3b82f6;
-  margin-bottom: 1rem;
 }
 
-.directory-item svg {
+.directory-row .file-icon svg {
   color: #f59e0b;
 }
 
 .file-name {
   font-weight: 500;
   color: #1e293b;
-  margin-bottom: 0.5rem;
   word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.file-info {
-  font-size: 0.75rem;
+.file-type {
+  text-align: center;
+  font-size: 0.875rem;
   color: #64748b;
-  margin-bottom: 1rem;
+}
+
+.file-size {
+  text-align: right;
+  font-size: 0.875rem;
+  color: #64748b;
+  font-family: monospace;
+}
+
+.file-modified {
+  text-align: center;
+  font-size: 0.875rem;
+  color: #64748b;
+  font-family: monospace;
 }
 
 .file-actions {
   display: flex;
   gap: 0.5rem;
-  position: absolute;
-  bottom: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
+  justify-content: center;
+  align-items: center;
   opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 10;
-  background: rgba(255, 255, 255, 0.95);
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: opacity 0.2s ease;
 }
 
-.file-item:hover .file-actions {
+.file-row:hover .file-actions {
   opacity: 1;
 }
 
-.directory-item:hover .file-actions {
-  opacity: 1;
-}
-
-/* More specific rules for directory items */
-.file-item.directory-item:hover .file-actions {
-  opacity: 1 !important;
-}
-
-/* Ensure file-actions are always positioned correctly */
-.directory-item .file-actions {
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.directory-item:hover .file-actions {
-  opacity: 1;
-}
-
-/* Additional specificity for subdirectory items */
-.file-grid .directory-item:hover .file-actions {
-  opacity: 1;
-}
-
-/* Ensure buttons are clickable when visible */
-.file-actions button {
-  pointer-events: auto;
-  position: relative;
-  z-index: 1;
+.file-actions .file-info {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-style: italic;
 }
 
 .empty-state {
-  grid-column: 1 / -1;
-  text-align: center;
   padding: 3rem;
+  text-align: center;
   color: #64748b;
 }
 
@@ -379,18 +396,67 @@
     flex-wrap: wrap;
   }
 
-  .file-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  .file-list-header {
+    grid-template-columns: 30px 1fr 80px 100px;
+    gap: 0.5rem;
+  }
+
+  .file-row {
+    grid-template-columns: 30px 1fr 80px 100px;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .file-list-header .header-size,
+  .file-list-header .header-modified {
+    display: none;
+  }
+
+  .file-row .file-size,
+  .file-row .file-modified {
+    display: none;
+  }
+
+  .file-list-header .header-actions {
+    grid-column: 4;
+  }
+
+  .file-actions {
+    opacity: 1;
+    position: static;
   }
 
   .upload-zone {
     padding: 2rem 1rem;
   }
+}
+
+@media (max-width: 480px) {
+  .file-list-header {
+    grid-template-columns: 30px 1fr 60px;
+    gap: 0.5rem;
+  }
+
+  .file-row {
+    grid-template-columns: 30px 1fr 60px;
+    gap: 0.5rem;
+  }
+
+  .file-list-header .header-type {
+    display: none;
+  }
+
+  .file-row .file-type {
+    display: none;
+  }
 
   .file-actions {
-    position: static;
-    opacity: 1;
-    margin-top: 0.5rem;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .action-button.small {
+    padding: 0.25rem;
   }
 }
 
