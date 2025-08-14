@@ -4,15 +4,10 @@ name: azure-file-viewer
 metadata:
   template: azure-file-viewer@0.0.1-beta
 services:
-  api:
-    project: ./backend/FileViewer.Api
+  web:
+    project: ./FileViewer.Web.csproj
     host: appservice
     language: dotnet
-  web:
-    project: ./frontend
-    host: staticwebapp
-    language: js
-    dist: build
 hooks:
   preprovision:
     shell: sh

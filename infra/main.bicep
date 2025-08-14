@@ -64,11 +64,11 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
   }
 }
 
-// App Service for API
-resource api 'Microsoft.Web/sites@2022-03-01' = {
+// App Service for API and frontend
+resource web 'Microsoft.Web/sites@2022-03-01' = {
   name: '${abbrs.webSitesAppService}${resourceToken}'
   location: location
-  tags: union(tags, { 'azd-service-name': 'api' })
+  tags: union(tags, { 'azd-service-name': 'web' })
   properties: {
     serverFarmId: appServicePlan.id
     httpsOnly: true
@@ -79,26 +79,11 @@ resource api 'Microsoft.Web/sites@2022-03-01' = {
         allowedOrigins: ['*']
         supportCredentials: false
       }
+      defaultDocuments: ['index.html']
     }
   }
   identity: {
     type: 'SystemAssigned'
-  }
-}
-
-// Static Web App for frontend
-resource web 'Microsoft.Web/staticSites@2021-03-01' = {
-  name: 'RemoteFile'
-  location: 'eastus2'  // Static Web Apps require specific regions
-  tags: union(tags, { 'azd-service-name': 'web' })
-  sku: {
-    name: 'Free'
-    tier: 'Free'
-  }
-  properties: {
-    buildProperties: {
-      skipGithubActionWorkflowGeneration: true
-    }
   }
 }
 
@@ -193,10 +178,10 @@ output AZURE_KEY_VAULT_NAME string = keyVault.name
 output AZURE_KEY_VAULT_URI string = keyVault.properties.vaultUri
 
 output SERVICE_API_IDENTITY_PRINCIPAL_ID string = managedIdentity.properties.principalId
-output SERVICE_API_NAME string = 'RemoteFile'
-output SERVICE_API_URI string = 'https://remotefile.azurewebsites.net'
+output SERVICE_API_NAME string = web.name
+output SERVICE_API_URI string = 'https://${web.properties.defaultHostName}'
 
 output SERVICE_WEB_NAME string = web.name
-output SERVICE_WEB_URI string = 'https://${web.properties.defaultHostname}'
+output SERVICE_WEB_URI string = 'https://${web.properties.defaultHostName}'
 
 output APPLICATIONINSIGHTS_CONNECTION_STRING string = applicationInsights.properties.ConnectionString
