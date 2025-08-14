@@ -27,6 +27,11 @@
   color: #64748b;
 }
 
+.user-info span {
+  font-weight: 500;
+  color: #374151;
+}
+
 .logout-button {
   display: flex;
   align-items: center;

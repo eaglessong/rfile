@@ -189,8 +189,8 @@ const Dashboard: React.FC = () => {
       <header className="dashboard-header">
         <h1>Azure File Viewer</h1>
         <div className="user-info">
-          <User size={20} />
           <span>{user?.username}</span>
+          <User size={20} />
           <button onClick={authService.logout} className="logout-button">
             <LogOut size={16} />
             Logout
