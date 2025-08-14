@@ -236,7 +236,7 @@
 
 .file-list-header {
   display: grid;
-  grid-template-columns: 40px 1fr 100px 120px 160px 160px 150px;
+  grid-template-columns: 40px 1fr 100px 120px 180px 150px;
   gap: 1rem;
   padding: 1rem;
   background: #f8fafc;
@@ -259,11 +259,7 @@
   text-align: right;
 }
 
-.header-created {
-  text-align: center;
-}
-
-.header-modified {
+.header-date {
   text-align: center;
 }
 
@@ -273,7 +269,7 @@
 
 .file-row {
   display: grid;
-  grid-template-columns: 40px 1fr 100px 120px 160px 160px 150px;
+  grid-template-columns: 40px 1fr 100px 120px 180px 150px;
   gap: 1rem;
   padding: 1rem;
   border-bottom: 1px solid #f1f5f9;
@@ -353,6 +349,27 @@
   font-family: monospace;
 }
 
+.file-date {
+  text-align: center;
+  font-size: 0.875rem;
+  color: #64748b;
+  font-family: monospace;
+  line-height: 1.4;
+}
+
+.file-date .date-created {
+  display: block;
+  color: #374151;
+  font-weight: 500;
+}
+
+.file-date .date-modified {
+  display: block;
+  color: #64748b;
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
 .file-modified {
   text-align: center;
   font-size: 0.875rem;
@@ -429,12 +446,12 @@
   }
 
   .file-list-header .header-size,
-  .file-list-header .header-created,
-  .file-list-header .header-modified {
+  .file-list-header .header-date {
     display: none;
   }
 
   .file-row .file-size,
+  .file-row .file-date,
   .file-row .file-created,
   .file-row .file-modified {
     display: none;
