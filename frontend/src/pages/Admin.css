@@ -8,9 +8,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #e1e5e9;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.admin-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.admin-header-left h1 {
+  margin: 0;
 }
 
 .admin-header h1 {
@@ -130,6 +140,11 @@
   font-weight: 600;
   color: #495057;
   font-size: 14px;
+  align-items: center;
+}
+
+.user-list-header > div {
+  text-align: left;
 }
 
 .user-list-item {
@@ -139,6 +154,7 @@
   padding: 16px 20px;
   border-bottom: 1px solid #e1e5e9;
   transition: background-color 0.2s ease;
+  align-items: center;
 }
 
 .user-list-item:hover {
@@ -152,17 +168,21 @@
 .user-info {
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
 }
 
 .user-username {
   font-weight: 500;
   color: #333;
   margin-bottom: 4px;
+  text-align: left;
 }
 
 .user-email {
   color: #666;
   font-size: 12px;
+  text-align: left;
 }
 
 .user-role {
@@ -192,6 +212,7 @@
 .user-created {
   color: #666;
   font-size: 13px;
+  text-align: left;
 }
 
 .user-actions {

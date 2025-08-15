@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User, UserRole } from '../types';
 import { api } from '../services/api';
 import UserList from '../components/UserList';
@@ -10,6 +11,7 @@ interface AdminProps {
 }
 
 const Admin: React.FC<AdminProps> = ({ currentUser }) => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -117,7 +119,16 @@ const Admin: React.FC<AdminProps> = ({ currentUser }) => {
   return (
     <div className="admin-page">
       <div className="admin-header">
-        <h1>User Management</h1>
+        <div className="admin-header-left">
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => navigate('/')}
+            title="Back to Home"
+          >
+            ← Back to Home
+          </button>
+          <h1>User Management</h1>
+        </div>
         <button 
           className="btn btn-primary" 
           onClick={handleCreateUser}
