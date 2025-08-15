@@ -442,11 +442,12 @@ const Dashboard: React.FC = () => {
 
           {currentPath && (
             <div 
-              className={`file-row directory-row ${dragOverTarget === getParentPath(currentPath) ? 'drag-over' : ''}`}
+              className={`file-row directory-row parent-directory-row ${dragOverTarget === getParentPath(currentPath) ? 'drag-over' : ''}`}
               onClick={navigateUp}
               onDragOver={(e) => handleDragOver(e, getParentPath(currentPath))}
               onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, getParentPath(currentPath))}
+              title="Drop files here to move them to the parent folder"
             >
               <div className="file-icon">
                 <FolderOpen size={20} />

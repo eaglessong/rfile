@@ -737,3 +737,20 @@
 .directory-row.drag-over .file-icon {
   color: #22c55e;
 }
+
+/* Parent directory (..) specific styles */
+.parent-directory-row {
+  border-left: 3px solid transparent;
+  font-style: italic;
+  opacity: 0.9;
+}
+
+.parent-directory-row.drag-over {
+  background-color: rgba(168, 85, 247, 0.1);
+  border-color: #a855f7;
+  border-left-color: #a855f7;
+}
+
+.parent-directory-row.drag-over .file-icon {
+  color: #a855f7;
+}
