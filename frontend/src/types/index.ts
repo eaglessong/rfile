@@ -16,6 +16,7 @@ export interface DirectoryItem {
   lastModified: string;
   files: FileItem[];
   subdirectories: DirectoryItem[];
+  totalSize: number;
 }
 
 export interface UploadResponse {

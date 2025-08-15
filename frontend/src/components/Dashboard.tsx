@@ -659,7 +659,9 @@ const Dashboard: React.FC = () => {
                 ) : (
                   <>
                     {directory.name} 
-                    <span className="file-count">({directory.files.length})</span>
+                    <span className="file-count">
+                      ({directory.files.length} {directory.files.length === 1 ? 'file' : 'files'}, {formatFileSize(directory.totalSize || 0)})
+                    </span>
                   </>
                 )}
               </div>

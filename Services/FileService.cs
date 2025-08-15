@@ -69,6 +69,23 @@ public class FileService : IFileService
         return files;
     }
 
+    private async Task<long> CalculateDirectorySize(DirectoryItem directory)
+    {
+        long totalSize = 0;
+
+        // Calculate size of files in this directory (excluding placeholder files)
+        totalSize += directory.Files.Where(f => !f.Name.EndsWith(".placeholder")).Sum(f => f.Size);
+
+        // Calculate size of all subdirectories recursively
+        foreach (var subdirectory in directory.Subdirectories)
+        {
+            subdirectory.TotalSize = await CalculateDirectorySize(subdirectory);
+            totalSize += subdirectory.TotalSize;
+        }
+
+        return totalSize;
+    }
+
     public async Task<DirectoryItem> GetDirectoryStructureAsync(string directoryPath = "")
     {
         var containerClient = _blobServiceClient.GetBlobContainerClient(ContainerName);
@@ -153,6 +170,10 @@ public class FileService : IFileService
         }
 
         rootDirectory.Subdirectories.AddRange(directories.Values);
+        
+        // Calculate total size for the root directory
+        rootDirectory.TotalSize = await CalculateDirectorySize(rootDirectory);
+        
         return rootDirectory;
     }
 

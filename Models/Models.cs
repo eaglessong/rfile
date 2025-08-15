@@ -25,6 +25,7 @@ public class DirectoryItem
     public int? ParentDirectoryId { get; set; } // Foreign key for parent directory
     public List<FileItem> Files { get; set; } = new();
     public List<DirectoryItem> Subdirectories { get; set; } = new();
+    public long TotalSize { get; set; } // Total size including all subdirectories and files
 }
 
 public class UploadFileRequest

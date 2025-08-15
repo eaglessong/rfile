@@ -75,6 +75,26 @@ public class DatabaseFileService : IFileService
         return result;
     }
 
+    private async Task<long> CalculateDirectorySize(DirectoryItem directory)
+    {
+        long totalSize = 0;
+
+        // Calculate size of files in this directory
+        var filesInDirectory = await _context.Files
+            .Where(f => f.DirectoryId == directory.Id && !f.Name.EndsWith(".placeholder"))
+            .ToListAsync();
+        totalSize += filesInDirectory.Sum(f => f.Size);
+
+        // Calculate size of all subdirectories recursively
+        foreach (var subdirectory in directory.Subdirectories)
+        {
+            subdirectory.TotalSize = await CalculateDirectorySize(subdirectory);
+            totalSize += subdirectory.TotalSize;
+        }
+
+        return totalSize;
+    }
+
     public async Task<DirectoryItem> GetDirectoryStructureAsync(string directoryPath = "")
     {
         try
@@ -154,6 +174,9 @@ public class DatabaseFileService : IFileService
                     }
                 }
             }
+
+            // Calculate total size for the structure
+            structure.TotalSize = await CalculateDirectorySize(structure);
 
             return structure;
         }
