@@ -337,6 +337,21 @@ const Dashboard: React.FC = () => {
     return parentPath;
   };
 
+  const getParentDirectoryDate = (currentPath: string): string => {
+    if (!currentPath) {
+      return 'Root';
+    }
+    
+    // For the parent directory (..), we want to show the date of the directory we would go up to
+    // Since we don't have that info readily available, we'll use the current directory's date
+    // as a reasonable approximation, or show a generic "Go up" message
+    if (directoryStructure) {
+      return new Date(directoryStructure.lastModified).toLocaleDateString();
+    }
+    
+    return 'Go up';
+  };
+
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -594,10 +609,10 @@ const Dashboard: React.FC = () => {
               <div className="file-type">Folder</div>
               <div className="file-size">-</div>
               <div className="file-date">
-                <span className="file-info">Go up</span>
+                <span className="file-info">{getParentDirectoryDate(currentPath)}</span>
               </div>
               <div className="file-actions">
-                <span className="file-info">Parent</span>
+                {/* Empty actions column for parent directory */}
               </div>
             </div>
           )}
