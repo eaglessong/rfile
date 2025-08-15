@@ -15,7 +15,14 @@ import {
   ExternalLink,
   Settings,
   Share2,
-  Edit2
+  Edit2,
+  FileText,
+  FileImage,
+  FileVideo,
+  FileAudio,
+  FileCode,
+  FileSpreadsheet,
+  Archive
 } from 'lucide-react';
 import { fileService } from '../services/fileService';
 import { authService } from '../services/authService';
@@ -306,6 +313,90 @@ const Dashboard: React.FC = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const getFileExtension = (filename: string): string => {
+    return filename.split('.').pop()?.toLowerCase() || '';
+  };
+
+  const getFileType = (filename: string): string => {
+    const extension = getFileExtension(filename);
+    
+    // Image files
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp', 'ico', 'tiff', 'tif'].includes(extension)) {
+      return 'Image';
+    }
+    
+    // Video files
+    if (['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm', 'mkv', '3gp', 'm4v', 'mpg', 'mpeg'].includes(extension)) {
+      return 'Video';
+    }
+    
+    // Audio files
+    if (['mp3', 'wav', 'flac', 'aac', 'ogg', 'wma', 'm4a', 'opus'].includes(extension)) {
+      return 'Audio';
+    }
+    
+    // Document files
+    if (['pdf', 'doc', 'docx', 'rtf', 'odt', 'pages'].includes(extension)) {
+      return 'Document';
+    }
+    
+    // Spreadsheet files
+    if (['xls', 'xlsx', 'csv', 'ods', 'numbers'].includes(extension)) {
+      return 'Spreadsheet';
+    }
+    
+    // Presentation files
+    if (['ppt', 'pptx', 'odp', 'key'].includes(extension)) {
+      return 'Presentation';
+    }
+    
+    // Code files
+    if (['js', 'ts', 'jsx', 'tsx', 'html', 'css', 'scss', 'sass', 'less', 'json', 'xml', 'py', 'java', 'cpp', 'c', 'cs', 'php', 'rb', 'go', 'rs', 'swift', 'kt', 'dart', 'vue', 'svelte', 'sql', 'sh', 'bat', 'ps1'].includes(extension)) {
+      return 'Code';
+    }
+    
+    // Text files
+    if (['txt', 'md', 'log', 'cfg', 'conf', 'ini', 'yml', 'yaml', 'toml'].includes(extension)) {
+      return 'Text';
+    }
+    
+    // Archive files
+    if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'dmg', 'iso'].includes(extension)) {
+      return 'Archive';
+    }
+    
+    // If extension exists but doesn't match any category
+    if (extension) {
+      return extension.toUpperCase();
+    }
+    
+    return 'File';
+  };
+
+  const getFileIcon = (filename: string) => {
+    const fileType = getFileType(filename);
+    
+    switch (fileType) {
+      case 'Image':
+        return <FileImage size={20} className="file-type-icon image" />;
+      case 'Video':
+        return <FileVideo size={20} className="file-type-icon video" />;
+      case 'Audio':
+        return <FileAudio size={20} className="file-type-icon audio" />;
+      case 'Spreadsheet':
+        return <FileSpreadsheet size={20} className="file-type-icon spreadsheet" />;
+      case 'Code':
+        return <FileCode size={20} className="file-type-icon code" />;
+      case 'Text':
+      case 'Document':
+        return <FileText size={20} className="file-type-icon text" />;
+      case 'Archive':
+        return <Archive size={20} className="file-type-icon archive" />;
+      default:
+        return <File size={20} className="file-type-icon default" />;
+    }
+  };
+
   const getBreadcrumbs = () => {
     if (!currentPath) return [{ name: 'Root', path: '' }];
     
@@ -563,7 +654,7 @@ const Dashboard: React.FC = () => {
                 `Click to open ${file.name}`}
             >
               <div className="file-icon">
-                <File size={20} />
+                {getFileIcon(file.name)}
               </div>
               <div className="file-name">
                 {editingItem?.type === 'file' && editingItem?.path === file.path ? (
@@ -581,7 +672,7 @@ const Dashboard: React.FC = () => {
                   file.name
                 )}
               </div>
-              <div className="file-type">File</div>
+              <div className="file-type">{getFileType(file.name)}</div>
               <div className="file-size">{formatFileSize(file.size)}</div>
               <div className="file-date">
                 {new Date(file.lastModified).toLocaleDateString()}

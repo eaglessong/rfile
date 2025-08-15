@@ -754,3 +754,36 @@
 .parent-directory-row.drag-over .file-icon {
   color: #a855f7;
 }
+
+/* File type icon colors */
+.file-type-icon.image {
+  color: #10b981; /* Green for images */
+}
+
+.file-type-icon.video {
+  color: #ef4444; /* Red for videos */
+}
+
+.file-type-icon.audio {
+  color: #8b5cf6; /* Purple for audio */
+}
+
+.file-type-icon.code {
+  color: #3b82f6; /* Blue for code */
+}
+
+.file-type-icon.text {
+  color: #6b7280; /* Gray for text/documents */
+}
+
+.file-type-icon.spreadsheet {
+  color: #059669; /* Dark green for spreadsheets */
+}
+
+.file-type-icon.archive {
+  color: #d97706; /* Orange for archives */
+}
+
+.file-type-icon.default {
+  color: #6b7280; /* Gray for unknown files */
+}
