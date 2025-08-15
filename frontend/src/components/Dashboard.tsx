@@ -85,10 +85,13 @@ const Dashboard: React.FC = () => {
     setLoading(true);
     setError('');
     try {
+      console.log('Loading directory structure for path:', currentPath);
       const structure = await fileService.getDirectoryStructure(currentPath);
+      console.log('Directory structure loaded successfully:', structure);
       setDirectoryStructure(structure);
     } catch (error: any) {
-      setError(error.response?.data?.message || 'Failed to load directory');
+      console.error('Error loading directory structure:', error);
+      setError(error.response?.data?.message || 'Error retrieving directory structure');
     } finally {
       setLoading(false);
     }
@@ -295,7 +298,10 @@ const Dashboard: React.FC = () => {
         setSuccessMessage(`Moved folder "${draggedItem.name}" successfully`);
       }
 
-      loadDirectory(); // Refresh the directory
+      // Small delay before refreshing to avoid race conditions
+      setTimeout(() => {
+        loadDirectory();
+      }, 100);
     } catch (error: any) {
       console.error('Move operation failed:', error);
       setError(`Failed to move ${draggedItem.type}: ${error.response?.data?.message || error.message}`);
