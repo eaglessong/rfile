@@ -44,7 +44,10 @@ public class ShareController : ControllerBase
             // In a production system, you would store this mapping:
             // shareToken -> { filePath, expiryDate, permissions, etc. }
             // For this demo, we'll encode the file path in the token (not secure for production)
-            var encodedFilePath = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(request.FilePath));
+            var encodedFilePath = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(request.FilePath))
+                .Replace('+', '-')  // Make URL safe
+                .Replace('/', '_')  // Make URL safe
+                .Replace("=", "");  // Remove padding
             var shareUrl = $"{baseUrl}/api/share/download/{encodedFilePath}";
 
             return Ok(new ShareLinkResponse
@@ -70,7 +73,14 @@ public class ShareController : ControllerBase
             string filePath;
             try
             {
-                filePath = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(token));
+                // Convert from URL-safe Base64 back to regular Base64
+                var base64 = token.Replace('-', '+').Replace('_', '/');
+                // Add padding if needed
+                while (base64.Length % 4 != 0)
+                {
+                    base64 += "=";
+                }
+                filePath = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(base64));
             }
             catch (Exception ex)
             {
