@@ -19,14 +19,14 @@ public class DatabaseFileService : IFileService
         {
             if (string.IsNullOrEmpty(directoryPath))
             {
-                // Get root files
+                // Get root files, excluding placeholder files
                 return await _context.Files
-                    .Where(f => f.DirectoryId == null)
+                    .Where(f => f.DirectoryId == null && !f.Name.Equals(".placeholder"))
                     .ToListAsync();
             }
             else
             {
-                // Get files in specific directory
+                // Get files in specific directory, excluding placeholder files
                 var directory = await _context.Directories
                     .FirstOrDefaultAsync(d => d.Path == directoryPath);
                 
@@ -36,7 +36,7 @@ public class DatabaseFileService : IFileService
                 }
 
                 return await _context.Files
-                    .Where(f => f.DirectoryId == directory.Id)
+                    .Where(f => f.DirectoryId == directory.Id && !f.Name.Equals(".placeholder"))
                     .ToListAsync();
             }
         }
@@ -96,20 +96,20 @@ public class DatabaseFileService : IFileService
                     Subdirectories = new List<DirectoryItem>()
                 };
 
-                // Get all root files and directories
+                // Get all root files and directories, excluding placeholder files
                 structure.Files = await _context.Files
-                    .Where(f => f.DirectoryId == null)
+                    .Where(f => f.DirectoryId == null && !f.Name.Equals(".placeholder"))
                     .ToListAsync();
 
                 structure.Subdirectories = await _context.Directories
                     .Where(d => d.ParentDirectoryId == null)
                     .ToListAsync();
 
-                // Populate file counts for each subdirectory
+                // Populate file counts for each subdirectory, excluding placeholder files
                 foreach (var subdir in structure.Subdirectories)
                 {
                     subdir.Files = await _context.Files
-                        .Where(f => f.DirectoryId == subdir.Id)
+                        .Where(f => f.DirectoryId == subdir.Id && !f.Name.Equals(".placeholder"))
                         .ToListAsync();
                 }
             }
@@ -136,20 +136,20 @@ public class DatabaseFileService : IFileService
                 }
                 else
                 {
-                    // Load files and subdirectories for this directory
+                    // Load files and subdirectories for this directory, excluding placeholder files
                     structure.Files = await _context.Files
-                        .Where(f => f.DirectoryId == structure.Id)
+                        .Where(f => f.DirectoryId == structure.Id && !f.Name.Equals(".placeholder"))
                         .ToListAsync();
 
                     structure.Subdirectories = await _context.Directories
                         .Where(d => d.ParentDirectoryId == structure.Id)
                         .ToListAsync();
 
-                    // Populate file counts for each subdirectory
+                    // Populate file counts for each subdirectory, excluding placeholder files
                     foreach (var subdir in structure.Subdirectories)
                     {
                         subdir.Files = await _context.Files
-                            .Where(f => f.DirectoryId == subdir.Id)
+                            .Where(f => f.DirectoryId == subdir.Id && !f.Name.Equals(".placeholder"))
                             .ToListAsync();
                     }
                 }

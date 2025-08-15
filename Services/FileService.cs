@@ -46,6 +46,10 @@ public class FileService : IFileService
             if (relativePath.Contains('/'))
                 continue;
 
+            // Hide placeholder files from the user interface
+            if (blobItem.Name.EndsWith("/.placeholder") || Path.GetFileName(blobItem.Name) == ".placeholder")
+                continue;
+
             var blobClient = containerClient.GetBlobClient(blobItem.Name);
             var properties = await blobClient.GetPropertiesAsync();
 
@@ -87,6 +91,10 @@ public class FileService : IFileService
 
             if (segments.Length == 1)
             {
+                // Skip placeholder files from directory structure
+                if (blobItem.Name.EndsWith("/.placeholder") || segments[0] == ".placeholder")
+                    continue;
+
                 // This is a file in the current directory
                 var blobClient = containerClient.GetBlobClient(blobItem.Name);
                 var properties = await blobClient.GetPropertiesAsync();
@@ -202,11 +210,27 @@ public class FileService : IFileService
             var containerClient = _blobServiceClient.GetBlobContainerClient(ContainerName);
             var blobClient = containerClient.GetBlobClient(filePath);
             
+            // Check if this is a placeholder file
+            bool isPlaceholderFile = filePath.EndsWith("/.placeholder");
+            
+            if (isPlaceholderFile)
+            {
+                Console.WriteLine($"Warning: Attempting to delete placeholder file: {filePath}");
+                Console.WriteLine("This will remove the directory representation but the directory structure should be preserved");
+            }
+            
             var response = await blobClient.DeleteIfExistsAsync();
+            
+            if (isPlaceholderFile && response.Value)
+            {
+                Console.WriteLine($"Deleted placeholder file: {filePath} - Directory structure should remain available");
+            }
+            
             return response.Value;
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"Error deleting file {filePath}: {ex.Message}");
             return false;
         }
     }
