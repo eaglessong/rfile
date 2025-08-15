@@ -385,6 +385,58 @@ startxref
             return StatusCode(500, new { Message = "Error deleting directory", Error = ex.Message });
         }
     }
+
+    [HttpPut("move-file")]
+    public async Task<ActionResult> MoveFile([FromBody] MoveFileRequest request)
+    {
+        if (string.IsNullOrEmpty(request.SourceFilePath) || string.IsNullOrEmpty(request.DestinationDirectoryPath))
+        {
+            return BadRequest(new { Message = "Source file path and destination directory path are required" });
+        }
+
+        try
+        {
+            var result = await _fileService.MoveFileAsync(request.SourceFilePath, request.DestinationDirectoryPath);
+            if (result)
+            {
+                return Ok(new { Message = "File moved successfully" });
+            }
+            else
+            {
+                return NotFound(new { Message = "File not found" });
+            }
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "Error moving file", Error = ex.Message });
+        }
+    }
+
+    [HttpPut("move-directory")]
+    public async Task<ActionResult> MoveDirectory([FromBody] MoveDirectoryRequest request)
+    {
+        if (string.IsNullOrEmpty(request.SourceDirectoryPath) || string.IsNullOrEmpty(request.DestinationDirectoryPath))
+        {
+            return BadRequest(new { Message = "Source directory path and destination directory path are required" });
+        }
+
+        try
+        {
+            var result = await _fileService.MoveDirectoryAsync(request.SourceDirectoryPath, request.DestinationDirectoryPath);
+            if (result)
+            {
+                return Ok(new { Message = "Directory moved successfully" });
+            }
+            else
+            {
+                return NotFound(new { Message = "Directory not found" });
+            }
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "Error moving directory", Error = ex.Message });
+        }
+    }
 }
 
 public class CreateDirectoryRequest
@@ -402,4 +454,16 @@ public class RenameDirectoryRequest
 {
     public string OldDirectoryPath { get; set; } = string.Empty;
     public string NewDirectoryName { get; set; } = string.Empty;
+}
+
+public class MoveFileRequest
+{
+    public string SourceFilePath { get; set; } = string.Empty;
+    public string DestinationDirectoryPath { get; set; } = string.Empty;
+}
+
+public class MoveDirectoryRequest
+{
+    public string SourceDirectoryPath { get; set; } = string.Empty;
+    public string DestinationDirectoryPath { get; set; } = string.Empty;
 }

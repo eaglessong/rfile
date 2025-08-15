@@ -35,6 +35,8 @@ const Dashboard: React.FC = () => {
   const [newFolderName, setNewFolderName] = useState('');
   const [editingItem, setEditingItem] = useState<{type: 'file' | 'directory', path: string, name: string} | null>(null);
   const [editingName, setEditingName] = useState('');
+  const [draggedItem, setDraggedItem] = useState<{type: 'file' | 'directory', path: string, name: string} | null>(null);
+  const [dragOverTarget, setDragOverTarget] = useState<string | null>(null);
 
   const handleFileDrop = async (acceptedFiles: File[]) => {
     console.log('Files dropped:', acceptedFiles);
@@ -217,6 +219,69 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  // Drag and drop handlers
+  const handleDragStart = (e: React.DragEvent, type: 'file' | 'directory', path: string, name: string) => {
+    setDraggedItem({ type, path, name });
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', JSON.stringify({ type, path, name }));
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+    setDragOverTarget(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent, targetDirectoryPath: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverTarget(targetDirectoryPath);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    // Only clear drag over if we're leaving the target element entirely
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setDragOverTarget(null);
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetDirectoryPath: string) => {
+    e.preventDefault();
+    setDragOverTarget(null);
+
+    if (!draggedItem) return;
+
+    // Don't allow dropping on itself
+    if (draggedItem.path === targetDirectoryPath) {
+      return;
+    }
+
+    // Don't allow dropping a directory into its own subdirectory
+    if (draggedItem.type === 'directory' && targetDirectoryPath.startsWith(draggedItem.path + '/')) {
+      setError('Cannot move a directory into its own subdirectory');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError('');
+
+      if (draggedItem.type === 'file') {
+        await fileService.moveFile(draggedItem.path, targetDirectoryPath);
+        setSuccessMessage(`Moved file "${draggedItem.name}" successfully`);
+      } else {
+        await fileService.moveDirectory(draggedItem.path, targetDirectoryPath);
+        setSuccessMessage(`Moved folder "${draggedItem.name}" successfully`);
+      }
+
+      loadDirectory(); // Refresh the directory
+    } catch (error: any) {
+      setError(`Failed to move ${draggedItem.type}: ${error.response?.data?.message || error.message}`);
+    } finally {
+      setLoading(false);
+      setDraggedItem(null);
+    }
+  };
+
   const navigateToDirectory = (path: string) => {
     setCurrentPath(path);
   };
@@ -225,6 +290,12 @@ const Dashboard: React.FC = () => {
     const pathParts = currentPath.split('/').filter(Boolean);
     pathParts.pop();
     setCurrentPath(pathParts.join('/'));
+  };
+
+  const getParentPath = (path: string) => {
+    const pathParts = path.split('/').filter(Boolean);
+    pathParts.pop();
+    return pathParts.join('/');
   };
 
   const formatFileSize = (bytes: number): string => {
@@ -370,7 +441,13 @@ const Dashboard: React.FC = () => {
           </div>
 
           {currentPath && (
-            <div className="file-row directory-row" onClick={navigateUp}>
+            <div 
+              className={`file-row directory-row ${dragOverTarget === getParentPath(currentPath) ? 'drag-over' : ''}`}
+              onClick={navigateUp}
+              onDragOver={(e) => handleDragOver(e, getParentPath(currentPath))}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, getParentPath(currentPath))}
+            >
               <div className="file-icon">
                 <FolderOpen size={20} />
               </div>
@@ -389,7 +466,13 @@ const Dashboard: React.FC = () => {
           {directoryStructure?.subdirectories.map((directory) => (
             <div
               key={directory.path}
-              className="file-row directory-row"
+              className={`file-row directory-row ${dragOverTarget === directory.path ? 'drag-over' : ''}`}
+              draggable
+              onDragStart={(e) => handleDragStart(e, 'directory', directory.path, directory.name)}
+              onDragEnd={handleDragEnd}
+              onDragOver={(e) => handleDragOver(e, directory.path)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, directory.path)}
               onClick={(e) => {
                 // Don't navigate if currently editing this directory
                 if (editingItem?.type === 'directory' && editingItem?.path === directory.path) {
@@ -464,6 +547,9 @@ const Dashboard: React.FC = () => {
             <div 
               key={file.path} 
               className="file-row file-row-clickable"
+              draggable
+              onDragStart={(e) => handleDragStart(e, 'file', file.path, file.name)}
+              onDragEnd={handleDragEnd}
               onClick={() => {
                 // Don't open file if currently editing this item
                 if (editingItem?.type === 'file' && editingItem?.path === file.path) {

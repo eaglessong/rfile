@@ -510,4 +510,118 @@ public class DatabaseFileService : IFileService
             return false;
         }
     }
+
+    public async Task<bool> MoveFileAsync(string sourceFilePath, string destinationDirectoryPath)
+    {
+        try
+        {
+            var file = await _context.Files.FirstOrDefaultAsync(f => f.Path == sourceFilePath);
+            if (file == null)
+            {
+                return false;
+            }
+
+            DirectoryItem? destinationDirectory = null;
+            if (!string.IsNullOrEmpty(destinationDirectoryPath) && destinationDirectoryPath != "/")
+            {
+                destinationDirectory = await _context.Directories
+                    .FirstOrDefaultAsync(d => d.Path == destinationDirectoryPath);
+                
+                if (destinationDirectory == null)
+                {
+                    return false; // Destination directory doesn't exist
+                }
+            }
+
+            // Update file's directory and path
+            var fileName = Path.GetFileName(sourceFilePath);
+            var newFilePath = string.IsNullOrEmpty(destinationDirectoryPath) || destinationDirectoryPath == "/" 
+                ? fileName 
+                : $"{destinationDirectoryPath.TrimEnd('/')}/{fileName}";
+
+            // Check if a file already exists at the destination
+            var existingFile = await _context.Files.FirstOrDefaultAsync(f => f.Path == newFilePath);
+            if (existingFile != null)
+            {
+                return false; // Don't overwrite existing files
+            }
+
+            file.DirectoryId = destinationDirectory?.Id;
+            file.Path = newFilePath;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> MoveDirectoryAsync(string sourceDirectoryPath, string destinationDirectoryPath)
+    {
+        try
+        {
+            var directory = await _context.Directories.FirstOrDefaultAsync(d => d.Path == sourceDirectoryPath);
+            if (directory == null)
+            {
+                return false;
+            }
+
+            DirectoryItem? destinationDirectory = null;
+            if (!string.IsNullOrEmpty(destinationDirectoryPath) && destinationDirectoryPath != "/")
+            {
+                destinationDirectory = await _context.Directories
+                    .FirstOrDefaultAsync(d => d.Path == destinationDirectoryPath);
+                
+                if (destinationDirectory == null)
+                {
+                    return false; // Destination directory doesn't exist
+                }
+            }
+
+            // Extract directory name from source path
+            var directoryName = Path.GetFileName(sourceDirectoryPath.TrimEnd('/'));
+            var newDirectoryPath = string.IsNullOrEmpty(destinationDirectoryPath) || destinationDirectoryPath == "/" 
+                ? directoryName 
+                : $"{destinationDirectoryPath.TrimEnd('/')}/{directoryName}";
+
+            // Check if a directory already exists at the destination
+            var existingDirectory = await _context.Directories.FirstOrDefaultAsync(d => d.Path == newDirectoryPath);
+            if (existingDirectory != null)
+            {
+                return false; // Don't overwrite existing directories
+            }
+
+            // Update all files and subdirectories that belong to this directory
+            var allFilesToUpdate = await _context.Files
+                .Where(f => f.Path.StartsWith(sourceDirectoryPath + "/"))
+                .ToListAsync();
+
+            foreach (var file in allFilesToUpdate)
+            {
+                file.Path = file.Path.Replace(sourceDirectoryPath + "/", newDirectoryPath + "/");
+            }
+
+            var allSubdirectoriesToUpdate = await _context.Directories
+                .Where(d => d.Path.StartsWith(sourceDirectoryPath + "/"))
+                .ToListAsync();
+
+            foreach (var subdir in allSubdirectoriesToUpdate)
+            {
+                subdir.Path = subdir.Path.Replace(sourceDirectoryPath + "/", newDirectoryPath + "/");
+            }
+
+            // Update the main directory
+            directory.ParentDirectoryId = destinationDirectory?.Id;
+            directory.Path = newDirectoryPath;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }

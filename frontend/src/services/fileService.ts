@@ -64,5 +64,19 @@ export const fileService = {
       oldDirectoryPath,
       newDirectoryName
     });
+  },
+
+  async moveFile(sourceFilePath: string, destinationDirectoryPath: string): Promise<void> {
+    await api.put('/files/move-file', {
+      sourceFilePath,
+      destinationDirectoryPath
+    });
+  },
+
+  async moveDirectory(sourceDirectoryPath: string, destinationDirectoryPath: string): Promise<void> {
+    await api.put('/files/move-directory', {
+      sourceDirectoryPath,
+      destinationDirectoryPath
+    });
   }
 };
