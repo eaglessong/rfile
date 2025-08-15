@@ -11,6 +11,7 @@
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  min-height: 60px; /* Ensure minimum height */
 }
 
 .dashboard-header h1 {
@@ -25,8 +26,10 @@
   align-items: center;
   gap: 1rem;
   color: #64748b;
-  flex-wrap: nowrap; /* Prevent wrapping */
+  flex-wrap: nowrap !important; /* Force no wrapping */
   min-width: 0; /* Allow flex items to shrink below their content size */
+  flex-direction: row !important; /* Force horizontal layout */
+  justify-content: flex-end; /* Align items to the right */
 }
 
 .user-profile {
@@ -57,6 +60,41 @@
   align-items: center;
   gap: 0.75rem;
   flex-shrink: 0; /* Prevent action buttons from shrinking */
+}
+
+/* Ensure user-info stays horizontal on desktop and tablet screens */
+@media (min-width: 641px) {
+  .user-info {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 1rem;
+  }
+  
+  .dashboard-header {
+    flex-direction: row !important;
+    align-items: center !important;
+  }
+}
+
+/* Force horizontal layout for user-info container - IMPORTANT for Chrome */
+.dashboard-header .user-info {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 1rem !important;
+}
+
+.dashboard-header .user-info .user-profile {
+  display: flex !important;
+  align-items: center !important;
+  flex-shrink: 1;
+}
+
+.dashboard-header .user-info .header-actions {
+  display: flex !important;
+  align-items: center !important;
+  flex-shrink: 0;
 }
 
 .logout-button {
@@ -432,19 +470,6 @@
   line-height: 1.4;
 }
 
-.file-date .date-created {
-  display: block;
-  color: #374151;
-  font-weight: 500;
-}
-
-.file-date .date-modified {
-  display: block;
-  color: #64748b;
-  font-size: 0.8rem;
-  font-style: italic;
-}
-
 .file-modified {
   text-align: center;
   font-size: 0.875rem;
@@ -487,7 +512,7 @@
 }
 
 /* Responsive design */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .dashboard-header {
     padding: 1rem;
     flex-direction: column;
@@ -499,8 +524,11 @@
     width: 100%;
     justify-content: space-between;
     gap: 0.75rem; /* Reduce gap on mobile */
-    flex-wrap: nowrap; /* Ensure no wrapping - keep user-profile and header-actions on same row */
+    flex-wrap: nowrap !important; /* Ensure no wrapping - keep user-profile and header-actions on same row */
+    flex-direction: row !important; /* Force horizontal layout even on mobile */
     min-width: 0; /* Allow flex items to shrink */
+    display: flex !important; /* Force flex display */
+    align-items: center !important; /* Force center alignment */
   }
 
   .user-profile {
