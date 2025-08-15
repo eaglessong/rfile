@@ -113,6 +113,10 @@ public class FileService : IFileService
             }
             else if (segments.Length > 1)
             {
+                // Skip placeholder files from subdirectory counts too
+                if (blobItem.Name.EndsWith("/.placeholder"))
+                    continue;
+
                 // This is a file in a subdirectory
                 var subdirName = segments[0];
                 var subdirPath = string.IsNullOrEmpty(directoryPath) ? subdirName : $"{directoryPath}/{subdirName}";
