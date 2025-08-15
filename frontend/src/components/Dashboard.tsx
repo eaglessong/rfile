@@ -360,6 +360,20 @@ const Dashboard: React.FC = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  // Calculate total files and size across entire directory structure
+  const calculateTotalStats = (directory: DirectoryItem): { totalFiles: number, totalSize: number } => {
+    let totalFiles = directory.files.length;
+    let totalSize = directory.files.reduce((sum, file) => sum + file.size, 0);
+
+    directory.subdirectories.forEach(subdir => {
+      const subdirStats = calculateTotalStats(subdir);
+      totalFiles += subdirStats.totalFiles;
+      totalSize += subdirStats.totalSize;
+    });
+
+    return { totalFiles, totalSize };
+  };
+
   const getFileExtension = (filename: string): string => {
     return filename.split('.').pop()?.toLowerCase() || '';
   };
@@ -445,10 +459,15 @@ const Dashboard: React.FC = () => {
   };
 
   const getBreadcrumbs = () => {
-    if (!currentPath) return [{ name: 'Root', path: '' }];
+    const rootName = directoryStructure && !currentPath ? (() => {
+      const stats = calculateTotalStats(directoryStructure);
+      return `Root (${stats.totalFiles} ${stats.totalFiles === 1 ? 'file' : 'files'}, ${formatFileSize(stats.totalSize)})`;
+    })() : 'Root';
+    
+    if (!currentPath) return [{ name: rootName, path: '' }];
     
     const parts = currentPath.split('/').filter(Boolean);
-    const breadcrumbs = [{ name: 'Root', path: '' }];
+    const breadcrumbs = [{ name: rootName, path: '' }];
     
     let accumulatedPath = '';
     for (const part of parts) {
