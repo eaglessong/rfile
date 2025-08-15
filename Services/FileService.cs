@@ -112,9 +112,27 @@ public class FileService : IFileService
                         Name = subdirName,
                         Path = subdirPath,
                         CreatedDate = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 30)), // Random creation time for demo
-                        LastModified = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 7))
+                        LastModified = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 7)),
+                        Files = new List<FileItem>(),
+                        Subdirectories = new List<DirectoryItem>()
                     };
                 }
+
+                // Add this file to the subdirectory's file list for accurate counting
+                var blobClient = containerClient.GetBlobClient(blobItem.Name);
+                var properties = await blobClient.GetPropertiesAsync();
+
+                directories[subdirName].Files.Add(new FileItem
+                {
+                    Name = segments[segments.Length - 1], // Get the actual filename
+                    Path = blobItem.Name,
+                    Size = blobItem.Properties.ContentLength ?? 0,
+                    ContentType = properties.Value.ContentType,
+                    LastModified = blobItem.Properties.LastModified?.DateTime ?? DateTime.MinValue,
+                    CreatedDate = properties.Value.CreatedOn.DateTime,
+                    IsDirectory = false,
+                    Url = blobClient.Uri.ToString()
+                });
             }
         }
 
