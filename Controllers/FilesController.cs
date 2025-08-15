@@ -1,7 +1,10 @@
 using FileViewer.Api.Models;
 using FileViewer.Api.Services;
+using FileViewer.Api.Data;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace FileViewer.Api.Controllers;
 
@@ -12,10 +15,12 @@ namespace FileViewer.Api.Controllers;
 public class FilesController : ControllerBase
 {
     private readonly IFileService _fileService;
+    private readonly ApplicationDbContext _context;
 
-    public FilesController(IFileService fileService)
+    public FilesController(IFileService fileService, ApplicationDbContext context)
     {
         _fileService = fileService;
+        _context = context;
     }
 
     [HttpGet]
@@ -47,6 +52,8 @@ public class FilesController : ControllerBase
     }
 
     [HttpPost("upload")]
+    [RequestSizeLimit(1073741824)] // 1GB limit
+    [RequestFormLimits(MultipartBodyLengthLimit = 1073741824)] // 1GB limit
     public async Task<ActionResult<UploadResponse>> UploadFile([FromForm] IFormFile file, [FromForm] string? directoryPath = null)
     {
         Console.WriteLine($"Upload request received: file={file?.FileName}, directory={directoryPath}");
@@ -276,6 +283,11 @@ startxref
     {
         try
         {
+            if (request == null)
+            {
+                return BadRequest(new { Message = "Request is required" });
+            }
+            
             if (string.IsNullOrWhiteSpace(request.DirectoryPath))
             {
                 return BadRequest(new { Message = "Directory path is required" });
@@ -284,6 +296,7 @@ startxref
             // Ensure the directory path doesn't start with a leading slash
             var directoryPath = request.DirectoryPath.TrimStart('/');
             
+            // Try to create the directory
             var success = await _fileService.CreateDirectoryAsync(directoryPath);
             
             if (success)
@@ -437,6 +450,41 @@ startxref
             return StatusCode(500, new { Message = "Error moving directory", Error = ex.Message });
         }
     }
+
+    // TEMPORARY ENDPOINT - REMOVE AFTER USE
+    [HttpPost("admin/clear-database")]
+    public async Task<ActionResult> ClearDatabase([FromBody] ClearDatabaseRequest request)
+    {
+        // Security check - only allow with specific confirmation code
+        if (request.ConfirmationCode != "CLEAR_ALL_DATA_2025")
+        {
+            return Unauthorized("Invalid confirmation code");
+        }
+
+        try
+        {
+            var result = await _fileService.ClearAllDataAsync();
+            if (result)
+            {
+                return Ok(new { Message = "Database cleared successfully" });
+            }
+            else
+            {
+                return StatusCode(500, new { Message = "Failed to clear database" });
+            }
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "Error clearing database", Error = ex.Message });
+        }
+    }
+
+    [HttpGet("test")]
+    [AllowAnonymous]
+    public IActionResult Test()
+    {
+        return Ok(new { Message = "Files API is working", Timestamp = DateTime.UtcNow });
+    }
 }
 
 public class CreateDirectoryRequest
@@ -466,4 +514,9 @@ public class MoveDirectoryRequest
 {
     public string SourceDirectoryPath { get; set; } = string.Empty;
     public string DestinationDirectoryPath { get; set; } = string.Empty;
+}
+
+public class ClearDatabaseRequest
+{
+    public string ConfirmationCode { get; set; } = string.Empty;
 }

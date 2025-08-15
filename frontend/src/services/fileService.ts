@@ -27,6 +27,9 @@ export const fileService = {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: 0, // No timeout for large file uploads
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
       onUploadProgress: (progressEvent) => {
         if (onProgress && progressEvent.total) {
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -51,7 +54,7 @@ export const fileService = {
   },
 
   async createDirectory(directoryPath: string): Promise<void> {
-    await api.post('/files/create-directory', { directoryPath });
+    await api.post('/files/create-directory', { DirectoryPath: directoryPath });
   },
 
   async deleteDirectory(directoryPath: string): Promise<void> {

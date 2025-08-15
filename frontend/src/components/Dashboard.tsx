@@ -51,6 +51,18 @@ const Dashboard: React.FC = () => {
     for (const file of acceptedFiles) {
       try {
         console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
+        
+        // Warn about large files (>100MB)
+        const fileSizeMB = file.size / (1024 * 1024);
+        if (fileSizeMB > 100) {
+          const proceed = window.confirm(
+            `This file is ${fileSizeMB.toFixed(1)}MB in size. Large files may take a while to upload and store. Continue?`
+          );
+          if (!proceed) {
+            continue;
+          }
+        }
+        
         setUploadProgress({ fileName: file.name, progress: 0 });
         
         const result = await fileService.uploadFile(file, currentPath, (progress) => {

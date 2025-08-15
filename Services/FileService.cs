@@ -19,6 +19,7 @@ public interface IFileService
     Task<bool> RenameDirectoryAsync(string oldDirectoryPath, string newDirectoryName);
     Task<bool> MoveFileAsync(string sourceFilePath, string destinationDirectoryPath);
     Task<bool> MoveDirectoryAsync(string sourceDirectoryPath, string destinationDirectoryPath);
+    Task<bool> ClearAllDataAsync();
 }
 
 public class FileService : IFileService
@@ -604,6 +605,32 @@ public class FileService : IFileService
         }
         catch
         {
+            return false;
+        }
+    }
+
+    public async Task<bool> ClearAllDataAsync()
+    {
+        try
+        {
+            Console.WriteLine("Starting blob storage cleanup...");
+            
+            var containerClient = _blobServiceClient.GetBlobContainerClient(ContainerName);
+            await containerClient.CreateIfNotExistsAsync();
+
+            int deletedCount = 0;
+            await foreach (var blobItem in containerClient.GetBlobsAsync())
+            {
+                await containerClient.DeleteBlobIfExistsAsync(blobItem.Name);
+                deletedCount++;
+            }
+            
+            Console.WriteLine($"Blob storage cleared: {deletedCount} blobs removed");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error clearing blob storage: {ex.Message}");
             return false;
         }
     }

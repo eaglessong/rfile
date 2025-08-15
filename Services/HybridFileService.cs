@@ -364,10 +364,18 @@ public class HybridFileService : IFileService
     {
         try
         {
+            // Clean and validate the directory path
+            directoryPath = directoryPath.Trim().TrimStart('/').Replace('\\', '/');
+            
+            if (string.IsNullOrEmpty(directoryPath))
+            {
+                return false;
+            }
+
             // Extract directory name from the full path
             var directoryName = Path.GetFileName(directoryPath.TrimEnd('/'));
             var parentPath = Path.GetDirectoryName(directoryPath.TrimEnd('/'))?.Replace('\\', '/');
-            
+
             if (string.IsNullOrEmpty(directoryName))
             {
                 return false;
@@ -399,8 +407,12 @@ public class HybridFileService : IFileService
                 ParentDirectoryId = parentDirectory?.Id
             };
 
+            Console.WriteLine($"Creating directory object: Name='{directory.Name}', Path='{directory.Path}'");
+
             _context.Directories.Add(directory);
             await _context.SaveChangesAsync();
+
+            Console.WriteLine($"Directory saved to database with ID: {directory.Id}");
 
             // Create a placeholder file in blob storage to ensure the directory exists
             var containerClient = _blobServiceClient.GetBlobContainerClient(ContainerName);
@@ -409,14 +421,16 @@ public class HybridFileService : IFileService
             var placeholderPath = $"{directoryPath}/.placeholder";
             var blobClient = containerClient.GetBlobClient(placeholderPath);
             
+            Console.WriteLine($"Creating placeholder blob at: {placeholderPath}");
+            
             using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes("placeholder"));
             await blobClient.UploadAsync(stream, overwrite: true);
 
+            Console.WriteLine("Directory creation completed successfully");
             return true;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"Error creating directory: {ex.Message}");
             return false;
         }
     }
@@ -591,5 +605,31 @@ public class HybridFileService : IFileService
     {
         // Implementation would be complex - need to move all files and update all references
         throw new NotImplementedException("Directory moving not yet implemented for hybrid service");
+    }
+
+    public async Task<bool> ClearAllDataAsync()
+    {
+        try
+        {
+            Console.WriteLine("Starting database cleanup...");
+            
+            // Remove all files from database
+            var fileCount = await _context.Files.CountAsync();
+            _context.Files.RemoveRange(_context.Files);
+            
+            // Remove all directories from database
+            var directoryCount = await _context.Directories.CountAsync();
+            _context.Directories.RemoveRange(_context.Directories);
+            
+            await _context.SaveChangesAsync();
+            
+            Console.WriteLine($"Database cleared: {fileCount} files and {directoryCount} directories removed");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error clearing database: {ex.Message}");
+            return false;
+        }
     }
 }

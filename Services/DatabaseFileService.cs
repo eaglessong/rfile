@@ -673,4 +673,30 @@ public class DatabaseFileService : IFileService
             return false;
         }
     }
+
+    public async Task<bool> ClearAllDataAsync()
+    {
+        try
+        {
+            Console.WriteLine("Starting database cleanup...");
+            
+            // Remove all files from database
+            var fileCount = await _context.Files.CountAsync();
+            _context.Files.RemoveRange(_context.Files);
+            
+            // Remove all directories from database
+            var directoryCount = await _context.Directories.CountAsync();
+            _context.Directories.RemoveRange(_context.Directories);
+            
+            await _context.SaveChangesAsync();
+            
+            Console.WriteLine($"Database cleared: {fileCount} files and {directoryCount} directories removed");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error clearing database: {ex.Message}");
+            return false;
+        }
+    }
 }
