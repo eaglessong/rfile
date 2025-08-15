@@ -741,7 +741,6 @@
 /* Parent directory (..) specific styles */
 .parent-directory-row {
   border-left: 3px solid transparent;
-  font-style: italic;
   opacity: 0.9;
 }
 
