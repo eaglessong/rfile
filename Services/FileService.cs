@@ -91,11 +91,11 @@ public class FileService : IFileService
 
             if (segments.Length == 1)
             {
-                // Skip placeholder files from directory structure
-                if (blobItem.Name.EndsWith("/.placeholder") || segments[0] == ".placeholder")
-                    continue;
-
                 // This is a file in the current directory
+                // Skip placeholder files from user-visible file list, but use them for directory detection
+                if (blobItem.Name.EndsWith("/.placeholder") || segments[0] == ".placeholder")
+                    continue; // Don't add placeholder files to the visible file list
+
                 var blobClient = containerClient.GetBlobClient(blobItem.Name);
                 var properties = await blobClient.GetPropertiesAsync();
 
@@ -113,10 +113,6 @@ public class FileService : IFileService
             }
             else if (segments.Length > 1)
             {
-                // Skip placeholder files from subdirectory counts too
-                if (blobItem.Name.EndsWith("/.placeholder"))
-                    continue;
-
                 // This is a file in a subdirectory
                 var subdirName = segments[0];
                 var subdirPath = string.IsNullOrEmpty(directoryPath) ? subdirName : $"{directoryPath}/{subdirName}";
@@ -133,6 +129,10 @@ public class FileService : IFileService
                         Subdirectories = new List<DirectoryItem>()
                     };
                 }
+
+                // Skip placeholder files from subdirectory file counts, but still create the directory
+                if (blobItem.Name.EndsWith("/.placeholder"))
+                    continue; // Directory is created above, but don't count placeholder file
 
                 // Add this file to the subdirectory's file list for accurate counting
                 var blobClient = containerClient.GetBlobClient(blobItem.Name);
