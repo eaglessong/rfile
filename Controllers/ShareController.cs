@@ -39,13 +39,13 @@ public class ShareController : ControllerBase
             // Store the share link mapping (in a real app, you'd store this in a database)
             // For now, we'll create a simple token-based system
             var baseUrl = GetBaseUrl();
-            var shareUrl = $"{baseUrl}/api/share/file/{shareToken}";
-
+            
+            // Use a different route pattern to avoid SPA routing conflicts
             // In a production system, you would store this mapping:
             // shareToken -> { filePath, expiryDate, permissions, etc. }
             // For this demo, we'll encode the file path in the token (not secure for production)
             var encodedFilePath = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(request.FilePath));
-            shareUrl = $"{baseUrl}/api/share/file/{encodedFilePath}";
+            var shareUrl = $"{baseUrl}/api/share/download/{encodedFilePath}";
 
             return Ok(new ShareLinkResponse
             {
@@ -60,7 +60,7 @@ public class ShareController : ControllerBase
         }
     }
 
-    [HttpGet("file/{token}")]
+    [HttpGet("download/{token}")]
     [AllowAnonymous] // Allow anonymous access for shared files
     public async Task<ActionResult> GetSharedFile(string token)
     {
@@ -72,16 +72,16 @@ public class ShareController : ControllerBase
             {
                 filePath = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(token));
             }
-            catch
+            catch (Exception ex)
             {
-                return BadRequest(new { Message = "Invalid share link" });
+                return BadRequest(new { Message = "Invalid share link", Error = ex.Message });
             }
 
             // Get the file
             var (content, contentType) = await _fileService.GetFileContentWithTypeAsync(filePath);
             if (content == null || content.Length == 0)
             {
-                return NotFound(new { Message = "File not found or empty" });
+                return NotFound(new { Message = $"File not found or empty: {filePath}" });
             }
 
             // Get file info for proper content type
