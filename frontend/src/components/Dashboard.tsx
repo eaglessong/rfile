@@ -220,7 +220,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
-        <h1>Azure File Viewer</h1>
+        <h1>My File Cabinet</h1>
         <div className="user-info">
           <div className="user-profile">
             <User size={20} className="user-icon" />
