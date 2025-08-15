@@ -268,20 +268,36 @@ const Dashboard: React.FC = () => {
       return;
     }
 
+    // Debug logging
+    console.log('Drop operation:', {
+      draggedItem: draggedItem,
+      targetDirectoryPath: targetDirectoryPath,
+      targetDirectoryPathLength: targetDirectoryPath.length
+    });
+
     try {
       setLoading(true);
       setError('');
 
       if (draggedItem.type === 'file') {
+        console.log('Calling moveFile with:', { 
+          sourceFilePath: draggedItem.path, 
+          destinationDirectoryPath: targetDirectoryPath 
+        });
         await fileService.moveFile(draggedItem.path, targetDirectoryPath);
         setSuccessMessage(`Moved file "${draggedItem.name}" successfully`);
       } else {
+        console.log('Calling moveDirectory with:', { 
+          sourceDirectoryPath: draggedItem.path, 
+          destinationDirectoryPath: targetDirectoryPath 
+        });
         await fileService.moveDirectory(draggedItem.path, targetDirectoryPath);
         setSuccessMessage(`Moved folder "${draggedItem.name}" successfully`);
       }
 
       loadDirectory(); // Refresh the directory
     } catch (error: any) {
+      console.error('Move operation failed:', error);
       setError(`Failed to move ${draggedItem.type}: ${error.response?.data?.message || error.message}`);
     } finally {
       setLoading(false);
@@ -302,7 +318,9 @@ const Dashboard: React.FC = () => {
   const getParentPath = (path: string) => {
     const pathParts = path.split('/').filter(Boolean);
     pathParts.pop();
-    return pathParts.join('/');
+    const parentPath = pathParts.join('/');
+    // Return empty string for root directory, which is valid for our API
+    return parentPath;
   };
 
   const formatFileSize = (bytes: number): string => {

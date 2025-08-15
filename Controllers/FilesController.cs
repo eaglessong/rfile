@@ -389,7 +389,7 @@ startxref
     [HttpPut("move-file")]
     public async Task<ActionResult> MoveFile([FromBody] MoveFileRequest request)
     {
-        if (string.IsNullOrEmpty(request.SourceFilePath) || string.IsNullOrEmpty(request.DestinationDirectoryPath))
+        if (string.IsNullOrEmpty(request.SourceFilePath) || request.DestinationDirectoryPath == null)
         {
             return BadRequest(new { Message = "Source file path and destination directory path are required" });
         }
@@ -415,7 +415,7 @@ startxref
     [HttpPut("move-directory")]
     public async Task<ActionResult> MoveDirectory([FromBody] MoveDirectoryRequest request)
     {
-        if (string.IsNullOrEmpty(request.SourceDirectoryPath) || string.IsNullOrEmpty(request.DestinationDirectoryPath))
+        if (string.IsNullOrEmpty(request.SourceDirectoryPath) || request.DestinationDirectoryPath == null)
         {
             return BadRequest(new { Message = "Source directory path and destination directory path are required" });
         }
