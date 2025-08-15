@@ -121,3 +121,4 @@ frontend.log
 
 # Mock data with sensitive content (keep structure, not content)
 mock_files_data.json
+cookies.txt
