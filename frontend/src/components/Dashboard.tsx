@@ -44,17 +44,25 @@ const Dashboard: React.FC = () => {
   const [editingName, setEditingName] = useState('');
   const [draggedItem, setDraggedItem] = useState<{type: 'file' | 'directory', path: string, name: string} | null>(null);
   const [dragOverTarget, setDragOverTarget] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<{fileName: string, progress: number} | null>(null);
 
   const handleFileDrop = async (acceptedFiles: File[]) => {
     console.log('Files dropped:', acceptedFiles);
     for (const file of acceptedFiles) {
       try {
         console.log('Uploading file:', file.name);
-        await fileService.uploadFile(file, currentPath);
+        setUploadProgress({ fileName: file.name, progress: 0 });
+        
+        await fileService.uploadFile(file, currentPath, (progress) => {
+          setUploadProgress({ fileName: file.name, progress });
+        });
+        
         console.log('File uploaded successfully:', file.name);
+        setUploadProgress(null);
       } catch (error: any) {
         console.error('Upload error:', error);
         setError(`Failed to upload ${file.name}: ${error.response?.data?.message || error.message}`);
+        setUploadProgress(null);
       }
     }
     console.log('Refreshing directory...');
@@ -526,6 +534,21 @@ const Dashboard: React.FC = () => {
             }
           </p>
         </div>
+
+        {uploadProgress && (
+          <div className="upload-progress-container">
+            <div className="upload-progress-info">
+              <span className="upload-filename">Uploading: {uploadProgress.fileName}</span>
+              <span className="upload-percentage">{uploadProgress.progress}%</span>
+            </div>
+            <div className="upload-progress-bar">
+              <div 
+                className="upload-progress-fill" 
+                style={{ width: `${uploadProgress.progress}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
 
         {showCreateFolder && (
           <div className="create-folder-form">
