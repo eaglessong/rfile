@@ -50,23 +50,33 @@ const Dashboard: React.FC = () => {
     console.log('Files dropped:', acceptedFiles);
     for (const file of acceptedFiles) {
       try {
-        console.log('Uploading file:', file.name);
+        console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
         setUploadProgress({ fileName: file.name, progress: 0 });
         
-        await fileService.uploadFile(file, currentPath, (progress) => {
+        const result = await fileService.uploadFile(file, currentPath, (progress) => {
           setUploadProgress({ fileName: file.name, progress });
         });
         
+        console.log('Upload response:', result);
         console.log('File uploaded successfully:', file.name);
         setUploadProgress(null);
+        
+        // Add success message
+        setSuccessMessage(`File "${file.name}" uploaded successfully`);
+        setTimeout(() => setSuccessMessage(''), 3000);
+        
       } catch (error: any) {
         console.error('Upload error:', error);
+        console.error('Error response:', error.response?.data);
         setError(`Failed to upload ${file.name}: ${error.response?.data?.message || error.message}`);
         setUploadProgress(null);
       }
     }
     console.log('Refreshing directory...');
-    loadDirectory(); // Refresh the directory
+    // Add a small delay to ensure database transaction commits
+    setTimeout(() => {
+      loadDirectory();
+    }, 500);
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

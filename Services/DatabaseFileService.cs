@@ -121,6 +121,12 @@ public class DatabaseFileService : IFileService
                     .Where(f => f.DirectoryId == null && !f.Name.Equals(".placeholder"))
                     .ToListAsync();
 
+                Console.WriteLine($"Root directory: Found {structure.Files.Count} files");
+                foreach (var file in structure.Files)
+                {
+                    Console.WriteLine($"  File: '{file.Name}' (Path: '{file.Path}', Size: {file.Size})");
+                }
+
                 structure.Subdirectories = await _context.Directories
                     .Where(d => d.ParentDirectoryId == null)
                     .ToListAsync();
@@ -286,9 +292,13 @@ public class DatabaseFileService : IFileService
 
     private async Task<FileItem?> UploadFileInternalAsync(string fileName, string directoryPath, byte[] content, string contentType)
     {
+        Console.WriteLine($"UploadFileInternalAsync called: fileName='{fileName}', directoryPath='{directoryPath}', contentLength={content.Length}");
+        
         var filePath = string.IsNullOrEmpty(directoryPath) 
             ? fileName 
             : $"{directoryPath.TrimEnd('/')}/{fileName}";
+        
+        Console.WriteLine($"Generated filePath: '{filePath}'");
 
         // Check if file already exists
         var existingFile = await _context.Files
@@ -296,6 +306,7 @@ public class DatabaseFileService : IFileService
 
         if (existingFile != null)
         {
+            Console.WriteLine($"File already exists at path: '{filePath}'");
             return null; // File already exists
         }
 
@@ -305,6 +316,7 @@ public class DatabaseFileService : IFileService
         {
             parentDirectory = await _context.Directories
                 .FirstOrDefaultAsync(d => d.Path == directoryPath);
+            Console.WriteLine($"Parent directory found: {parentDirectory != null} (ID: {parentDirectory?.Id})");
         }
 
         var fileItem = new FileItem
@@ -321,8 +333,12 @@ public class DatabaseFileService : IFileService
             FileContentBase64 = Convert.ToBase64String(content)
         };
 
+        Console.WriteLine($"Creating FileItem: Name='{fileItem.Name}', Path='{fileItem.Path}', Size={fileItem.Size}");
+
         _context.Files.Add(fileItem);
         await _context.SaveChangesAsync();
+        
+        Console.WriteLine($"FileItem saved to database with ID: {fileItem.Id}");
 
         return fileItem;
     }
