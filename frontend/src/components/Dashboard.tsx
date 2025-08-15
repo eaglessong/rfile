@@ -14,7 +14,8 @@ import {
   User,
   ExternalLink,
   Settings,
-  Share2
+  Share2,
+  Edit2
 } from 'lucide-react';
 import { fileService } from '../services/fileService';
 import { authService } from '../services/authService';
@@ -32,6 +33,8 @@ const Dashboard: React.FC = () => {
   const [user, setUser] = useState<UserType | null>(null);
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
+  const [editingItem, setEditingItem] = useState<{type: 'file' | 'directory', path: string, name: string} | null>(null);
+  const [editingName, setEditingName] = useState('');
 
   const handleFileDrop = async (acceptedFiles: File[]) => {
     console.log('Files dropped:', acceptedFiles);
@@ -173,6 +176,44 @@ const Dashboard: React.FC = () => {
       } catch (error: any) {
         setError(`Failed to delete folder ${directoryName}: ${error.response?.data?.message || error.message}`);
       }
+    }
+  };
+
+  const handleStartEdit = (type: 'file' | 'directory', path: string, name: string) => {
+    setEditingItem({ type, path, name });
+    setEditingName(name);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingItem(null);
+    setEditingName('');
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingItem || !editingName.trim() || editingName === editingItem.name) {
+      handleCancelEdit();
+      return;
+    }
+
+    try {
+      if (editingItem.type === 'file') {
+        await fileService.renameFile(editingItem.path, editingName.trim());
+      } else {
+        await fileService.renameDirectory(editingItem.path, editingName.trim());
+      }
+      setSuccessMessage(`${editingItem.type === 'file' ? 'File' : 'Directory'} renamed successfully`);
+      handleCancelEdit();
+      loadDirectory(); // Refresh the directory
+    } catch (error: any) {
+      setError(`Failed to rename ${editingItem.type}: ${error.response?.data?.message || error.message}`);
+    }
+  };
+
+  const handleEditKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSaveEdit();
+    } else if (e.key === 'Escape') {
+      handleCancelEdit();
     }
   };
 
@@ -361,8 +402,22 @@ const Dashboard: React.FC = () => {
                 <FolderOpen size={20} />
               </div>
               <div className="file-name">
-                {directory.name} 
-                <span className="file-count">({directory.files.length})</span>
+                {editingItem?.type === 'directory' && editingItem?.path === directory.path ? (
+                  <input
+                    type="text"
+                    value={editingName}
+                    onChange={(e) => setEditingName(e.target.value)}
+                    onKeyDown={handleEditKeyPress}
+                    onBlur={handleSaveEdit}
+                    autoFocus
+                    className="edit-input"
+                  />
+                ) : (
+                  <>
+                    {directory.name} 
+                    <span className="file-count">({directory.files.length})</span>
+                  </>
+                )}
               </div>
               <div className="file-type">Folder</div>
               <div className="file-size">-</div>
@@ -376,6 +431,13 @@ const Dashboard: React.FC = () => {
                   title="Open Folder"
                 >
                   <FolderOpen size={16} />
+                </button>
+                <button
+                  onClick={() => handleStartEdit('directory', directory.path, directory.name)}
+                  className="action-button small"
+                  title="Rename Folder"
+                >
+                  <Edit2 size={16} />
                 </button>
                 <button
                   onClick={() => handleDeleteDirectory(directory.path, directory.name)}
@@ -398,7 +460,21 @@ const Dashboard: React.FC = () => {
               <div className="file-icon">
                 <File size={20} />
               </div>
-              <div className="file-name">{file.name}</div>
+              <div className="file-name">
+                {editingItem?.type === 'file' && editingItem?.path === file.path ? (
+                  <input
+                    type="text"
+                    value={editingName}
+                    onChange={(e) => setEditingName(e.target.value)}
+                    onKeyDown={handleEditKeyPress}
+                    onBlur={handleSaveEdit}
+                    autoFocus
+                    className="edit-input"
+                  />
+                ) : (
+                  file.name
+                )}
+              </div>
               <div className="file-type">File</div>
               <div className="file-size">{formatFileSize(file.size)}</div>
               <div className="file-date">
@@ -425,6 +501,13 @@ const Dashboard: React.FC = () => {
                   title="Copy share link to clipboard"
                 >
                   <Share2 size={16} />
+                </button>
+                <button
+                  onClick={() => handleStartEdit('file', file.path, file.name)}
+                  className="action-button small"
+                  title="Rename"
+                >
+                  <Edit2 size={16} />
                 </button>
                 <button
                   onClick={() => handleDelete(file)}

@@ -418,4 +418,96 @@ public class DatabaseFileService : IFileService
             return false;
         }
     }
+
+    public async Task<bool> RenameFileAsync(string oldFilePath, string newFileName)
+    {
+        try
+        {
+            var file = await _context.Files.FirstOrDefaultAsync(f => f.Path == oldFilePath);
+            if (file == null)
+            {
+                return false;
+            }
+
+            // Extract directory path from old file path
+            var directoryPath = Path.GetDirectoryName(oldFilePath);
+            var newFilePath = string.IsNullOrEmpty(directoryPath) ? newFileName : $"{directoryPath}/{newFileName}";
+
+            // Check if new path already exists
+            var existingFile = await _context.Files.FirstOrDefaultAsync(f => f.Path == newFilePath);
+            if (existingFile != null)
+            {
+                return false; // File with new name already exists
+            }
+
+            // Update the file record
+            file.Path = newFilePath;
+            file.Name = newFileName;
+            file.LastModified = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> RenameDirectoryAsync(string oldDirectoryPath, string newDirectoryName)
+    {
+        try
+        {
+            var directory = await _context.Directories.FirstOrDefaultAsync(d => d.Path == oldDirectoryPath);
+            if (directory == null)
+            {
+                return false;
+            }
+
+            // Extract parent directory path
+            var parentDirectory = Path.GetDirectoryName(oldDirectoryPath);
+            var newDirectoryPath = string.IsNullOrEmpty(parentDirectory) ? newDirectoryName : $"{parentDirectory}/{newDirectoryName}";
+
+            // Check if new path already exists
+            var existingDirectory = await _context.Directories.FirstOrDefaultAsync(d => d.Path == newDirectoryPath);
+            if (existingDirectory != null)
+            {
+                return false; // Directory with new name already exists
+            }
+
+            // Update all files in this directory and subdirectories
+            var filesToUpdate = await _context.Files
+                .Where(f => f.Path.StartsWith(oldDirectoryPath + "/") || f.Path == oldDirectoryPath)
+                .ToListAsync();
+
+            foreach (var file in filesToUpdate)
+            {
+                if (file.Path.StartsWith(oldDirectoryPath + "/"))
+                {
+                    file.Path = file.Path.Replace(oldDirectoryPath + "/", newDirectoryPath + "/");
+                }
+            }
+
+            // Update all subdirectories
+            var subdirectoriesToUpdate = await _context.Directories
+                .Where(d => d.Path.StartsWith(oldDirectoryPath + "/"))
+                .ToListAsync();
+
+            foreach (var subdir in subdirectoriesToUpdate)
+            {
+                subdir.Path = subdir.Path.Replace(oldDirectoryPath + "/", newDirectoryPath + "/");
+            }
+
+            // Update the main directory
+            directory.Path = newDirectoryPath;
+            directory.Name = newDirectoryName;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }

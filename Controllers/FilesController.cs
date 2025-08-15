@@ -271,34 +271,87 @@ startxref
         return System.Text.Encoding.UTF8.GetBytes(pdfContent);
     }
 
-    [HttpPost("directory")]
+        [HttpPost("create-directory")]
     public async Task<ActionResult> CreateDirectory([FromBody] CreateDirectoryRequest request)
     {
-        Console.WriteLine($"Create directory request: {request.DirectoryPath}");
-        
-        if (string.IsNullOrEmpty(request.DirectoryPath))
-        {
-            Console.WriteLine("Directory path is empty");
-            return BadRequest(new { Message = "Directory path is required" });
-        }
-
         try
         {
-            var result = await _fileService.CreateDirectoryAsync(request.DirectoryPath);
-            Console.WriteLine($"Create directory result: {result}");
-            if (result)
+            if (string.IsNullOrWhiteSpace(request.DirectoryPath))
+            {
+                return BadRequest(new { Message = "Directory path is required" });
+            }
+
+            // Ensure the directory path doesn't start with a leading slash
+            var directoryPath = request.DirectoryPath.TrimStart('/');
+            
+            var success = await _fileService.CreateDirectoryAsync(directoryPath);
+            
+            if (success)
             {
                 return Ok(new { Message = "Directory created successfully" });
             }
             else
             {
-                return BadRequest(new { Message = "Failed to create directory" });
+                return BadRequest(new { Message = "Failed to create directory. Directory may already exist." });
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Create directory exception: {ex.Message}");
             return StatusCode(500, new { Message = "Error creating directory", Error = ex.Message });
+        }
+    }
+
+    [HttpPut("rename-file")]
+    public async Task<ActionResult> RenameFile([FromBody] RenameFileRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.OldFilePath) || string.IsNullOrWhiteSpace(request.NewFileName))
+            {
+                return BadRequest(new { Message = "Old file path and new file name are required" });
+            }
+
+            var success = await _fileService.RenameFileAsync(request.OldFilePath, request.NewFileName);
+            
+            if (success)
+            {
+                return Ok(new { Message = "File renamed successfully" });
+            }
+            else
+            {
+                return BadRequest(new { Message = "Failed to rename file. File may not exist or new name may already be in use." });
+            }
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "Error renaming file", Error = ex.Message });
+        }
+    }
+
+    [HttpPut("rename-directory")]
+    public async Task<ActionResult> RenameDirectory([FromBody] RenameDirectoryRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.OldDirectoryPath) || string.IsNullOrWhiteSpace(request.NewDirectoryName))
+            {
+                return BadRequest(new { Message = "Old directory path and new directory name are required" });
+            }
+
+            var success = await _fileService.RenameDirectoryAsync(request.OldDirectoryPath, request.NewDirectoryName);
+            
+            if (success)
+            {
+                return Ok(new { Message = "Directory renamed successfully" });
+            }
+            else
+            {
+                return BadRequest(new { Message = "Failed to rename directory. Directory may not exist or new name may already be in use." });
+            }
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "Error renaming directory", Error = ex.Message });
         }
     }
 
@@ -337,4 +390,16 @@ startxref
 public class CreateDirectoryRequest
 {
     public string DirectoryPath { get; set; } = string.Empty;
+}
+
+public class RenameFileRequest
+{
+    public string OldFilePath { get; set; } = string.Empty;
+    public string NewFileName { get; set; } = string.Empty;
+}
+
+public class RenameDirectoryRequest
+{
+    public string OldDirectoryPath { get; set; } = string.Empty;
+    public string NewDirectoryName { get; set; } = string.Empty;
 }

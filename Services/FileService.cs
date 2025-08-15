@@ -15,6 +15,8 @@ public interface IFileService
     Task<string> GetDownloadUrlAsync(string filePath);
     Task<bool> CreateDirectoryAsync(string directoryPath);
     Task<(byte[] content, string contentType)> GetFileContentWithTypeAsync(string filePath);
+    Task<bool> RenameFileAsync(string oldFilePath, string newFileName);
+    Task<bool> RenameDirectoryAsync(string oldDirectoryPath, string newDirectoryName);
 }
 
 public class FileService : IFileService
@@ -311,6 +313,112 @@ public class FileService : IFileService
         catch
         {
             return (Array.Empty<byte>(), "application/octet-stream");
+        }
+    }
+
+    public async Task<bool> RenameFileAsync(string oldFilePath, string newFileName)
+    {
+        try
+        {
+            var containerClient = _blobServiceClient.GetBlobContainerClient(ContainerName);
+            var oldBlobClient = containerClient.GetBlobClient(oldFilePath);
+            
+            // Extract directory path from old file path
+            var directoryPath = Path.GetDirectoryName(oldFilePath);
+            var newFilePath = string.IsNullOrEmpty(directoryPath) ? newFileName : $"{directoryPath}/{newFileName}";
+            var newBlobClient = containerClient.GetBlobClient(newFilePath);
+
+            // Check if source file exists
+            if (!await oldBlobClient.ExistsAsync())
+            {
+                return false;
+            }
+
+            // Copy the blob to new location
+            await newBlobClient.StartCopyFromUriAsync(oldBlobClient.Uri);
+
+            // Wait for copy to complete
+            var properties = await newBlobClient.GetPropertiesAsync();
+            while (properties.Value.CopyStatus == CopyStatus.Pending)
+            {
+                await Task.Delay(100);
+                properties = await newBlobClient.GetPropertiesAsync();
+            }
+
+            // Delete the original file if copy was successful
+            if (properties.Value.CopyStatus == CopyStatus.Success)
+            {
+                await oldBlobClient.DeleteIfExistsAsync();
+                return true;
+            }
+
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> RenameDirectoryAsync(string oldDirectoryPath, string newDirectoryName)
+    {
+        try
+        {
+            var containerClient = _blobServiceClient.GetBlobContainerClient(ContainerName);
+            
+            // Get all blobs in the old directory
+            var blobs = containerClient.GetBlobsAsync(prefix: oldDirectoryPath + "/");
+            var blobsToMove = new List<string>();
+            
+            await foreach (var blob in blobs)
+            {
+                blobsToMove.Add(blob.Name);
+            }
+
+            if (!blobsToMove.Any())
+            {
+                return false; // Directory doesn't exist or is empty
+            }
+
+            // Extract parent directory path
+            var parentDirectory = Path.GetDirectoryName(oldDirectoryPath);
+            var newDirectoryPath = string.IsNullOrEmpty(parentDirectory) ? newDirectoryName : $"{parentDirectory}/{newDirectoryName}";
+
+            // Move each blob
+            foreach (var blobName in blobsToMove)
+            {
+                var oldBlobClient = containerClient.GetBlobClient(blobName);
+                var relativePath = blobName.Substring(oldDirectoryPath.Length + 1);
+                var newBlobName = $"{newDirectoryPath}/{relativePath}";
+                var newBlobClient = containerClient.GetBlobClient(newBlobName);
+
+                // Copy to new location
+                await newBlobClient.StartCopyFromUriAsync(oldBlobClient.Uri);
+                
+                // Wait for copy to complete
+                var properties = await newBlobClient.GetPropertiesAsync();
+                while (properties.Value.CopyStatus == CopyStatus.Pending)
+                {
+                    await Task.Delay(100);
+                    properties = await newBlobClient.GetPropertiesAsync();
+                }
+
+                // Delete original if copy was successful
+                if (properties.Value.CopyStatus == CopyStatus.Success)
+                {
+                    await oldBlobClient.DeleteIfExistsAsync();
+                }
+                else
+                {
+                    return false; // If any file fails to copy, return false
+                }
+            }
+
+            return true;
+        }
+        catch
+        {
+            return false;
         }
     }
 }

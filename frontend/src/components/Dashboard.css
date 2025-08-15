@@ -670,3 +670,36 @@
     gap: 0.5rem;
   }
 }
+
+/* Inline editing styles */
+.edit-input {
+  background: white;
+  border: 2px solid #3b82f6;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: inherit;
+  font-family: inherit;
+  color: inherit;
+  width: 100%;
+  max-width: 200px;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.edit-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Prevent click events when editing */
+.file-row:has(.edit-input) {
+  pointer-events: none;
+}
+
+.file-row .edit-input {
+  pointer-events: all;
+}
+
+.file-row .file-actions {
+  pointer-events: all;
+}

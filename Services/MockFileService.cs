@@ -410,4 +410,88 @@ public class MockFileService : IFileService
         SaveDataToFile();
         return true;
     }
+
+    public async Task<bool> RenameFileAsync(string oldFilePath, string newFileName)
+    {
+        var file = _mockFiles.FirstOrDefault(f => f.Path == oldFilePath);
+        if (file == null)
+        {
+            return false;
+        }
+
+        // Extract directory path from old file path
+        var directoryPath = Path.GetDirectoryName(oldFilePath);
+        var newFilePath = string.IsNullOrEmpty(directoryPath) ? newFileName : $"{directoryPath}/{newFileName}";
+
+        // Check if new path already exists
+        if (_mockFiles.Any(f => f.Path == newFilePath))
+        {
+            return false;
+        }
+
+        // Update file content mapping
+        if (_fileContents.ContainsKey(oldFilePath))
+        {
+            var content = _fileContents[oldFilePath];
+            _fileContents.Remove(oldFilePath);
+            _fileContents[newFilePath] = content;
+        }
+
+        // Update the file record
+        file.Path = newFilePath;
+        file.Name = newFileName;
+        file.LastModified = DateTime.UtcNow;
+
+        SaveDataToFile();
+        return true;
+    }
+
+    public async Task<bool> RenameDirectoryAsync(string oldDirectoryPath, string newDirectoryName)
+    {
+        var directory = _mockDirectories.FirstOrDefault(d => d.Path == oldDirectoryPath);
+        if (directory == null)
+        {
+            return false;
+        }
+
+        // Extract parent directory path
+        var parentDirectory = Path.GetDirectoryName(oldDirectoryPath);
+        var newDirectoryPath = string.IsNullOrEmpty(parentDirectory) ? newDirectoryName : $"{parentDirectory}/{newDirectoryName}";
+
+        // Check if new path already exists
+        if (_mockDirectories.Any(d => d.Path == newDirectoryPath))
+        {
+            return false;
+        }
+
+        // Update all files in this directory and subdirectories
+        var filesToUpdate = _mockFiles.Where(f => f.Path.StartsWith(oldDirectoryPath + "/")).ToList();
+        foreach (var file in filesToUpdate)
+        {
+            var oldPath = file.Path;
+            file.Path = file.Path.Replace(oldDirectoryPath + "/", newDirectoryPath + "/");
+            
+            // Update file content mapping
+            if (_fileContents.ContainsKey(oldPath))
+            {
+                var content = _fileContents[oldPath];
+                _fileContents.Remove(oldPath);
+                _fileContents[file.Path] = content;
+            }
+        }
+
+        // Update all subdirectories
+        var subdirectoriesToUpdate = _mockDirectories.Where(d => d.Path.StartsWith(oldDirectoryPath + "/")).ToList();
+        foreach (var subdir in subdirectoriesToUpdate)
+        {
+            subdir.Path = subdir.Path.Replace(oldDirectoryPath + "/", newDirectoryPath + "/");
+        }
+
+        // Update the main directory
+        directory.Path = newDirectoryPath;
+        directory.Name = newDirectoryName;
+
+        SaveDataToFile();
+        return true;
+    }
 }

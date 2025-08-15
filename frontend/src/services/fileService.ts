@@ -50,5 +50,19 @@ export const fileService = {
 
   async deleteDirectory(directoryPath: string): Promise<void> {
     await api.delete(`/files/directory/${encodeURIComponent(directoryPath)}`);
+  },
+
+  async renameFile(oldFilePath: string, newFileName: string): Promise<void> {
+    await api.put('/files/rename-file', {
+      oldFilePath,
+      newFileName
+    });
+  },
+
+  async renameDirectory(oldDirectoryPath: string, newDirectoryName: string): Promise<void> {
+    await api.put('/files/rename-directory', {
+      oldDirectoryPath,
+      newDirectoryName
+    });
   }
 };
