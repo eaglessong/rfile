@@ -5,6 +5,7 @@ using FileViewer.Api.Data;
 using FileViewer.Api.Models;
 using FileViewer.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Server.IIS;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -13,6 +14,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+
+// Configure request size limits for large file uploads
+builder.Services.Configure<IISServerOptions>(options =>
+{
+    options.MaxRequestBodySize = 1024 * 1024 * 1024; // 1GB limit
+});
+
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.Limits.MaxRequestBodySize = 1024 * 1024 * 1024; // 1GB limit
+});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -24,25 +37,26 @@ var azureConnectionString = builder.Configuration.GetConnectionString("DefaultCo
 
 if (!string.IsNullOrEmpty(storageAccountName))
 {
-    // Use Azure Storage with Managed Identity (preferred for production)
+    // Use Hybrid Service: Azure Blob Storage for files + Database for metadata
     var credential = new DefaultAzureCredential();
     var blobServiceClient = new BlobServiceClient(new Uri($"https://{storageAccountName}.blob.core.windows.net"), credential);
     builder.Services.AddSingleton(blobServiceClient);
-    builder.Services.AddScoped<IFileService, FileService>();
-    Console.WriteLine($"Using Azure Blob Storage: {storageAccountName}");
+    builder.Services.AddScoped<IFileService, HybridFileService>();
+    Console.WriteLine($"Using Hybrid Service: Azure Blob Storage ({storageAccountName}) + Database for metadata");
 }
-else if (!string.IsNullOrEmpty(azureConnectionString) && azureConnectionString != "UseDevelopmentStorage=true")
+else if (!string.IsNullOrEmpty(azureConnectionString))
 {
-    // Fallback to connection string
+    // Use Hybrid Service: Azure Blob Storage for files + Database for metadata (including development storage)
     builder.Services.AddSingleton(new BlobServiceClient(azureConnectionString));
-    builder.Services.AddScoped<IFileService, FileService>();
-    Console.WriteLine("Using Azure Blob Storage with connection string");
+    builder.Services.AddScoped<IFileService, HybridFileService>();
+    Console.WriteLine($"Using Hybrid Service: Azure Blob Storage (connection string: {azureConnectionString}) + Database for metadata");
 }
 else
 {
-    // Use database service for persistent storage across deployments
+    // Fallback: Use database service ONLY if no blob storage is available
+    // NOTE: This stores files as Base64 in database - not recommended for large files!
     builder.Services.AddScoped<IFileService, DatabaseFileService>();
-    Console.WriteLine("Using Database File Service");
+    Console.WriteLine("WARNING: Using Database File Service - files stored as Base64 in database. Configure blob storage for better performance!");
 }
 
 // Add migration service (always available for admin operations)

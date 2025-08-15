@@ -4,6 +4,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FileViewer.Api.Services;
 
+/// <summary>
+/// DatabaseFileService stores files as Base64 encoded strings in the database.
+/// WARNING: This is NOT recommended for large files as it:
+/// - Increases file size by ~33% due to Base64 encoding
+/// - Uses valuable database storage space
+/// - Can cause performance issues with large files
+/// 
+/// Use HybridFileService instead, which stores files in Azure Blob Storage
+/// and only metadata in the database.
+/// </summary>
 public class DatabaseFileService : IFileService
 {
     private readonly ApplicationDbContext _context;
