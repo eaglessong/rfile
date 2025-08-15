@@ -391,12 +391,18 @@ const Dashboard: React.FC = () => {
               key={directory.path}
               className="file-row directory-row"
               onClick={(e) => {
+                // Don't navigate if currently editing this directory
+                if (editingItem?.type === 'directory' && editingItem?.path === directory.path) {
+                  return;
+                }
                 // Only navigate if the click is not on the action buttons
                 if (!(e.target as HTMLElement).closest('.file-actions')) {
                   navigateToDirectory(directory.path);
                 }
               }}
-              title="Click to open folder"
+              title={editingItem?.type === 'directory' && editingItem?.path === directory.path ? 
+                'Currently editing - click outside to save' : 
+                'Click to open folder'}
             >
               <div className="file-icon">
                 <FolderOpen size={20} />
@@ -409,6 +415,7 @@ const Dashboard: React.FC = () => {
                     onChange={(e) => setEditingName(e.target.value)}
                     onKeyDown={handleEditKeyPress}
                     onBlur={handleSaveEdit}
+                    onClick={(e) => e.stopPropagation()}
                     autoFocus
                     className="edit-input"
                   />
@@ -433,7 +440,10 @@ const Dashboard: React.FC = () => {
                   <FolderOpen size={16} />
                 </button>
                 <button
-                  onClick={() => handleStartEdit('directory', directory.path, directory.name)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleStartEdit('directory', directory.path, directory.name);
+                  }}
                   className="action-button small"
                   title="Rename Folder"
                 >
@@ -454,8 +464,16 @@ const Dashboard: React.FC = () => {
             <div 
               key={file.path} 
               className="file-row file-row-clickable"
-              onClick={() => handleOpenFile(file)}
-              title={`Click to open ${file.name}`}
+              onClick={() => {
+                // Don't open file if currently editing this item
+                if (editingItem?.type === 'file' && editingItem?.path === file.path) {
+                  return;
+                }
+                handleOpenFile(file);
+              }}
+              title={editingItem?.type === 'file' && editingItem?.path === file.path ? 
+                'Currently editing - click outside to save' : 
+                `Click to open ${file.name}`}
             >
               <div className="file-icon">
                 <File size={20} />
@@ -468,6 +486,7 @@ const Dashboard: React.FC = () => {
                     onChange={(e) => setEditingName(e.target.value)}
                     onKeyDown={handleEditKeyPress}
                     onBlur={handleSaveEdit}
+                    onClick={(e) => e.stopPropagation()}
                     autoFocus
                     className="edit-input"
                   />
@@ -503,7 +522,10 @@ const Dashboard: React.FC = () => {
                   <Share2 size={16} />
                 </button>
                 <button
-                  onClick={() => handleStartEdit('file', file.path, file.name)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleStartEdit('file', file.path, file.name);
+                  }}
                   className="action-button small"
                   title="Rename"
                 >
